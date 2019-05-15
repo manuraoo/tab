@@ -15,6 +15,8 @@ class AssignExperimentGroupsView extends React.Component {
     }
   }
 
+  // TODO: we should create a shared QueryRenderer that handles
+  //   user creation when the user does not exist.
   render() {
     const { authUser, onComplete } = this.props
     return (
@@ -74,4 +76,7 @@ AssignExperimentGroupsView.defaultProps = {
   onComplete: () => {},
 }
 
-export default withUser()(AssignExperimentGroupsView)
+export default withUser({
+  renderIfNoUser: true,
+  redirectToAuthIfIncomplete: false,
+})(AssignExperimentGroupsView)

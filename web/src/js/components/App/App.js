@@ -24,6 +24,7 @@ const SettingsPageComponent = lazy(() =>
   import('js/components/Settings/SettingsPageComponent')
 )
 const FirstTabView = lazy(() => import('js/components/Dashboard/FirstTabView'))
+const IntroView = lazy(() => import('js/components/Dashboard/IntroView'))
 const PostUninstallView = lazy(() =>
   import('js/components/Dashboard/PostUninstallView')
 )
@@ -100,6 +101,7 @@ class App extends React.Component {
                     path="/newtab/first-tab/"
                     component={FirstTabView}
                   />
+                  <Route exact path="/newtab/intro/" component={IntroView} />
                   <Route
                     exact
                     path="/newtab/uninstalled/"

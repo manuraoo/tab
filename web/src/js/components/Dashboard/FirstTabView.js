@@ -1,5 +1,5 @@
 import React from 'react'
-import { dashboardURL, replaceUrl } from 'js/navigation/navigation'
+import { dashboardURL, introURL, replaceUrl } from 'js/navigation/navigation'
 import {
   setBrowserExtensionInstallId,
   setBrowserExtensionInstallTime,
@@ -37,12 +37,11 @@ class FirstTabView extends React.Component {
   }
 
   onExperimentAssignmentComplete(success) {
-    console.log('onExperimentAssignmentComplete', success)
     if (!success) {
       replaceUrl(dashboardURL)
     } else {
       // TODO: check experiment groups and show alternate experience
-      replaceUrl(dashboardURL)
+      replaceUrl(introURL)
     }
   }
 

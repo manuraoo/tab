@@ -57,6 +57,7 @@ export const absoluteUrl = path => {
 // ROUTES
 
 export const dashboardURL = '/newtab/'
+export const introURL = '/newtab/intro/'
 
 // Auth routes
 export const loginURL = '/newtab/auth/'
