@@ -6,6 +6,9 @@ import {
 } from 'js/utils/local-user-data-mgr'
 import AssignExperimentGroupsView from 'js/components/Dashboard/AssignExperimentGroupsView'
 
+// TODO: first, set up and deploy the general structure to do
+// experiments. Then, set up the experiment.
+
 // The view the extensions open immediately after they're
 // added to the browser.
 class FirstTabView extends React.Component {
@@ -34,6 +37,9 @@ class FirstTabView extends React.Component {
     this.setState({
       renderChildren: true,
     })
+
+    // TODO: add a timeout to redirect to sign-in in case anything
+    // goes wrong with experiment assignment?
   }
 
   onExperimentAssignmentComplete(success) {
