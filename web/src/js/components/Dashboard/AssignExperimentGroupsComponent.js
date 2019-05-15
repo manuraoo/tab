@@ -4,18 +4,23 @@ import { assignUserToTestGroups } from 'js/utils/experiments'
 
 class AssignExperimentGroups extends React.Component {
   componentDidMount() {
-    const { user } = this.props
+    const { onComplete, user } = this.props
 
-    // Assign the user to experiment groups. We do this every
-    // page load because the user may have become eligble for
-    // an experimeng (e.g. by having joined X days ago) or we
-    // may have added new experiments.
-    assignUserToTestGroups({
-      id: user.id,
-      numUsersRecruited: user.numUsersRecruited,
-      joined: user.joined,
-      isNewUser: this.props.isNewUser,
-    })
+    try {
+      // Assign the user to experiment groups. We do this every
+      // page load because the user may have become eligble for
+      // an experiment (e.g. by having joined X days ago) or we
+      // may have added new experiments.
+      assignUserToTestGroups({
+        id: user.id,
+        numUsersRecruited: user.numUsersRecruited,
+        joined: user.joined,
+        isNewUser: this.props.isNewUser,
+      })
+      onComplete(true)
+    } catch (e) {
+      onComplete(false)
+    }
   }
 
   render() {
@@ -30,10 +35,12 @@ AssignExperimentGroups.propTypes = {
     numUsersRecruited: PropTypes.number.isRequired,
   }).isRequired,
   isNewUser: PropTypes.bool.isRequired,
+  onComplete: PropTypes.func.isRequired,
 }
 
 AssignExperimentGroups.defaultProps = {
   isNewUser: false,
+  onComplete: () => {},
 }
 
 export default AssignExperimentGroups

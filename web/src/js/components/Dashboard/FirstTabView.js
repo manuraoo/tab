@@ -4,10 +4,18 @@ import {
   setBrowserExtensionInstallId,
   setBrowserExtensionInstallTime,
 } from 'js/utils/local-user-data-mgr'
+import AssignExperimentGroupsView from 'js/components/Dashboard/AssignExperimentGroupsView'
 
 // The view the extensions open immediately after they're
 // added to the browser.
 class FirstTabView extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      renderChildren: false,
+    }
+  }
+
   componentDidMount() {
     // Here, we can do anything we need to do before
     // going to the main dashboard.
@@ -20,11 +28,36 @@ class FirstTabView extends React.Component {
     // had cleared their local data.
     setBrowserExtensionInstallTime()
 
-    replaceUrl(dashboardURL)
+    // Important: the extension install time must be set
+    // before we call the `withUser` HOC, which relies on knowing
+    // the installation time.
+    this.setState({
+      renderChildren: true,
+    })
+  }
+
+  onExperimentAssignmentComplete(success) {
+    console.log('onExperimentAssignmentComplete', success)
+    if (!success) {
+      replaceUrl(dashboardURL)
+    } else {
+      // TODO: check experiment groups and show alternate experience
+      replaceUrl(dashboardURL)
+    }
   }
 
   render() {
-    return <span />
+    const { renderChildren } = this.state
+    if (!renderChildren) {
+      return null
+    }
+    return (
+      <div>
+        <AssignExperimentGroupsView
+          onComplete={this.onExperimentAssignmentComplete.bind(this)}
+        />
+      </div>
+    )
   }
 }
 
