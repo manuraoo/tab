@@ -47,6 +47,9 @@ class FirstTabView extends React.Component {
 
   render() {
     const { renderChildren } = this.state
+
+    // TODO: potentially show a "loading" state while we wait
+    // for user creation, experiment assignment, and redirect.
     if (!renderChildren) {
       return null
     }
