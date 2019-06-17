@@ -1,5 +1,5 @@
 
-service: web 
+service: web # Important: this must be unique in AWS Cloudformation!
 frameworkVersion: ">=1.14.0 <2.0.0"
 
 provider:
@@ -7,6 +7,14 @@ provider:
   runtime: nodejs8.10
   region: us-west-2
   stage: ${env:SLS_STAGE, self:custom.stageDefault}
+  # Let's be conservative and prevent any unexpected changes
+  # to the stack. See:
+  # https://github.com/gladly-team/tab/issues/582
+  stackPolicy:
+    - Effect: Deny
+      Principal: "*"
+      Action: "Update:*"
+      Resource: "*"
 
 custom:
   stageDefault: dev
@@ -35,6 +43,8 @@ resources:
     # New tab app S3 bucket
     TabS3Bucket:
       Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:
         BucketName: ${self:custom.newTabAppS3Bucket}
         AccessControl: PublicRead
@@ -48,6 +58,8 @@ resources:
           ErrorDocument: newtab/index.html
     TabS3BucketPolicy:
       Type: AWS::S3::BucketPolicy
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:
         Bucket:
           Ref: TabS3Bucket
@@ -63,6 +75,8 @@ resources:
     # Search app S3 bucket
     SearchAppS3Bucket:
       Type: AWS::S3::Bucket
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:
         BucketName: ${self:custom.searchAppS3Bucket}
         AccessControl: PublicRead
@@ -71,6 +85,8 @@ resources:
           ErrorDocument: search/index.html
     SearchAppS3BucketPolicy:
       Type: AWS::S3::BucketPolicy
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:
         Bucket:
           Ref: SearchAppS3Bucket
@@ -86,6 +102,8 @@ resources:
     # Serve the app through Cloudfront.
     WebAppCloudFrontDistribution:
       Type: AWS::CloudFront::Distribution
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:
         # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-properties-cloudfront-distributionconfig.html
         DistributionConfig:

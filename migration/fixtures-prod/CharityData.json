@@ -181,5 +181,33 @@
     "updated": "2019-04-22T18:00:000Z",
     "inactive": false,
     "isPermanentPartner": false
+  },
+  {
+    "id": "ba34354d-4386-402d-991f-11b97b832e2e",
+    "name": "Friends with Four Paws",
+    "category": "Animals",
+    "logo": "placeholder.png",
+    "image": "friends-with-four-paws.png",
+    "website": "http://www.friendswithfourpaws.org",
+    "impact": "Together, we can help Friends with Four Paws continue their work rescuing cats and dogs by finding them wonderful new homes. Thanks for your support!",
+    "description": "Finds loving homes for cats and dogs",
+    "created": "2019-05-23T18:00:000Z",
+    "updated": "2019-05-23T18:00:000Z",
+    "inactive": false,
+    "isPermanentPartner": false
+  },
+  {
+    "id": "4d951126-b0dc-42fd-acb5-a2eff158cca6",
+    "name": "Sea Turtle Inc",
+    "category": "Animals",
+    "logo": "placeholder.png",
+    "image": "sea-turtle-inc.jpg",
+    "website": "https://www.seaturtleinc.org",
+    "impact": "Together, we can help Sea Turtle Inc continue their work rescuing and rehabilitating injured sea turtles. Thanks for your support!",
+    "description": "Rescues sea turtles and assists with marine conservation efforts",
+    "created": "2019-06-17T18:00:000Z",
+    "updated": "2019-06-17T18:00:000Z",
+    "inactive": false,
+    "isPermanentPartner": false
   }
 ]

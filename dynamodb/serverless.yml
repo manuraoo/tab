@@ -1,5 +1,5 @@
 
-service: dynamodb
+service: dynamodb # Important: this must be unique in AWS Cloudformation!
 frameworkVersion: ">=1.14.0 <2.0.0"
 
 provider:
@@ -7,6 +7,14 @@ provider:
   runtime: nodejs8.10
   region: us-west-2
   stage: ${env:SLS_STAGE, self:custom.stageDefault}
+  # Let's be conservative and prevent any unexpected changes
+  # to the stack. See:
+  # https://github.com/gladly-team/tab/issues/582
+  stackPolicy:
+    - Effect: Deny
+      Principal: "*"
+      Action: "Update:*"
+      Resource: "*"
 
 plugins:
   # https://github.com/sbstjn/serverless-dynamodb-autoscaling
@@ -416,6 +424,8 @@ resources:
 
     usersTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: Users-${self:provider.stage}
         KeySchema:
@@ -442,6 +452,8 @@ resources:
 
     charitiesTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: Charities-${self:provider.stage}
         KeySchema:
@@ -456,6 +468,8 @@ resources:
 
     widgetsTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: Widgets-${self:provider.stage}
         KeySchema:
@@ -470,6 +484,8 @@ resources:
 
     userLevelsTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: UserLevels-${self:provider.stage}
         KeySchema:
@@ -484,6 +500,8 @@ resources:
 
     vcDonationLogTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: VcDonationLog-${self:provider.stage}
         KeySchema:
@@ -502,6 +520,8 @@ resources:
 
     vcDonationByCharityTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: VcDonationByCharity-${self:provider.stage}
         KeySchema:
@@ -520,6 +540,8 @@ resources:
 
     userRevenueLogTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: UserRevenueLog-${self:provider.stage}
         KeySchema:
@@ -538,6 +560,8 @@ resources:
 
     userDataConsentLogTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: UserDataConsentLog-${self:provider.stage}
         KeySchema:
@@ -556,6 +580,8 @@ resources:
 
     backgroundImagesTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: BackgroundImages-${self:provider.stage}
         KeySchema:
@@ -570,6 +596,8 @@ resources:
 
     userWidgetsTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: UserWidgets-${self:provider.stage}
         KeySchema:
@@ -598,6 +626,8 @@ resources:
 
     userTabsLogTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: UserTabsLog-${self:provider.stage}
         KeySchema:
@@ -616,6 +646,8 @@ resources:
 
     userSearchLogTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: UserSearchLog-${self:provider.stage}
         KeySchema:
@@ -634,6 +666,8 @@ resources:
 
     referralDataLogTable:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: ReferralDataLog-${self:provider.stage}
         KeySchema:
@@ -664,6 +698,8 @@ resources:
 
     referralLinkClickLog:  
       Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      UpdateReplacePolicy: Retain
       Properties:  
         TableName: ReferralLinkClickLog-${self:provider.stage}
         KeySchema:

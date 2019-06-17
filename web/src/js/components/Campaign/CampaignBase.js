@@ -35,7 +35,7 @@ class CampaignBase extends React.Component {
             start: moment(campaignStartTimeISO),
             end: moment(campaignEndTimeISO),
           },
-          heartsGoal: 6e6,
+          heartsGoal: 5e6,
           endContent: (
             <div>
               <Typography
@@ -45,7 +45,7 @@ class CampaignBase extends React.Component {
                   marginTop: 4,
                 }}
               >
-                Thank You for Supporting Cool Earth!
+                Thanks for Helping our Turtle Friends!
               </Typography>
               <div
                 style={{
@@ -56,15 +56,15 @@ class CampaignBase extends React.Component {
                 <Typography variant={'body2'} gutterBottom>
                   With your help,{' '}
                   <a
-                    href="https://www.coolearth.org"
+                    href="https://www.seaturtleinc.org/about-us/"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={anchorStyle}
                   >
-                    Cool Earth
+                    Sea Turtle Inc
                   </a>{' '}
-                  is working alongside local communities to halt deforestation
-                  and combat climate change. Thank you!{' '}
+                  will continue their work rescuing sea turtles and assisting
+                  with marine turtle conservation efforts.{' '}
                 </Typography>
                 <Typography>
                   <span style={{ fontWeight: 'bold' }}>
@@ -104,7 +104,7 @@ class CampaignBase extends React.Component {
             marginTop: 4,
           }}
         >
-          April Spotlight: Cool Earth
+          June Spotlight: Sea Turtle Inc
         </Typography>
         <div
           style={{
@@ -115,14 +115,14 @@ class CampaignBase extends React.Component {
           <Typography variant={'body2'} gutterBottom>
             This month, Tabbers selected{' '}
             <a
-              href="https://www.coolearth.org"
+              href="https://www.seaturtleinc.org/about-us/"
               target="_blank"
               rel="noopener noreferrer"
               style={anchorStyle}
             >
-              Cool Earth
+              Sea Turtle Inc
             </a>{' '}
-            for our April{' '}
+            for our June{' '}
             <a
               href="https://www.facebook.com/notes/tab-for-a-cause/introducing-monthly-charity-spotlight/2071986076177802/"
               target="_blank"
@@ -131,14 +131,37 @@ class CampaignBase extends React.Component {
             >
               Charity Spotlight
             </a>
-            —a particularly fitting choice for Earth Day on April 22nd! Cool
-            Earth works alongside rainforest communities to halt deforestation
-            and its impact on climate change. We continue to rapidly lose
-            rainforest, and their mission is to curb that loss by putting local
-            people back in control of their forest.
+            . Sea Turtle Inc’s mission is to rescue and{' '}
+            <a
+              href="http://www.seaturtleinc.org/rehabilitation/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={anchorStyle}
+            >
+              rehabilitate
+            </a>{' '}
+            injured sea turtles for release back into the wild,{' '}
+            <a
+              href="http://www.seaturtleinc.org/education/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={anchorStyle}
+            >
+              educate
+            </a>{' '}
+            the public, and assist with{' '}
+            <a
+              href="http://www.seaturtleinc.org/conservation/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={anchorStyle}
+            >
+              conservation
+            </a>{' '}
+            efforts for all marine turtle species.
           </Typography>
           <Typography variant={'body2'} gutterBottom>
-            Join us in supporting Cool Earth!
+            Join us in supporting Sea Turtle Inc!
           </Typography>
         </div>
       </HeartDonationCampaign>
