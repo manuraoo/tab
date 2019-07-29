@@ -1,4 +1,13 @@
+import { get, set } from 'lodash/object'
 import { SEARCH_PROVIDER_BING, SEARCH_PROVIDER_YAHOO } from 'js/constants'
+import { getUrlParameters } from 'js/utils/utils'
+import { detectSupportedBrowser } from 'js/utils/detectBrowser'
+import {
+  CHROME_BROWSER,
+  FIREFOX_BROWSER,
+  SEARCH_SRC_CHROME_EXTENSION,
+  SEARCH_SRC_FIREFOX_EXTENSION,
+} from 'js/constants'
 
 // Returns whether react-snap is the one running the app.
 // This is useful to adjust what we want to prerender.
@@ -104,4 +113,73 @@ export const clipTextToNearestWord = (text, maxCharacters) => {
       ? maxCharacters
       : indexOfPrevWhitespace
   return `${text.substring(0, indexToClip)} ...`
+}
+
+/**
+ * Determine if the search browser extension is currently
+ * installed in the browser. This is a best-guess of whether
+ * the extension is installed, because we don't yet support
+ * messaging the extension directly. See:
+ * https://github.com/gladly-team/tab/issues/616
+ * @return {Boolean} Whether the extension is installed
+ */
+export const isSearchExtensionInstalled = () => {
+  const detectedExtPreviously = !!get(
+    window,
+    'searchforacause.extension.isInstalled'
+  )
+  let isSearchFromExt = false
+  if (!detectedExtPreviously) {
+    const searchSrc = getUrlParameters()['src']
+    const browser = detectSupportedBrowser()
+    isSearchFromExt =
+      (browser === CHROME_BROWSER &&
+        searchSrc === SEARCH_SRC_CHROME_EXTENSION) ||
+      (browser === FIREFOX_BROWSER &&
+        searchSrc === SEARCH_SRC_FIREFOX_EXTENSION)
+    if (isSearchFromExt) {
+      set(window, 'searchforacause.extension.isInstalled', true)
+    }
+  }
+  return detectedExtPreviously || isSearchFromExt
+}
+
+/**
+ * Get the "window.searchforacause" global variable.
+ * @return {Object}
+ */
+export const getSearchGlobal = () => {
+  const searchforacause = window.searchforacause || {
+    // Deprecated.
+    search: {
+      fetchedOnPageLoad: false,
+      YPAErrorOnPageLoad: null,
+    },
+    // We rely on this in the SearchResultsQueryBing component.
+    // It allows us to fetch search results before loading all of
+    // the app JS.
+    queryRequest: {
+      // The status of any request to get search results data.
+      // One of: 'NONE', 'IN_PROGRESS', 'COMPLETE'
+      status: 'NONE',
+      // Whether our app already used the search response data here
+      // to render results. Our app can display these results if
+      // "displayedResults" == false, "status" == "COMPLETE", and
+      // "responseData" !== null.
+      displayedResults: false,
+      // Response data from the search results request.
+      responseData: null,
+    },
+    extension: {
+      // Whether the browser extension is installed, to the best
+      // of our knowledge.
+      isInstalled: false,
+    },
+  }
+  // We're not running in global scope, so make sure to
+  // assign to the window.
+  if (!window.searchforacause) {
+    window.searchforacause = searchforacause
+  }
+  return searchforacause
 }

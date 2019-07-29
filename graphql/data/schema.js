@@ -48,6 +48,7 @@ import setUsername from '../database/users/setUsername'
 import logEmailVerified from '../database/users/logEmailVerified'
 import logTab from '../database/users/logTab'
 import logSearch from '../database/users/logSearch'
+import checkSearchRateLimit from '../database/users/checkSearchRateLimit'
 import logRevenue from '../database/userRevenue/logRevenue'
 import logUserDataConsent from '../database/userDataConsent/logUserDataConsent'
 import mergeIntoExistingUser from '../database/users/mergeIntoExistingUser'
@@ -214,6 +215,35 @@ const maxSearchesDayType = new GraphQLObjectType({
   }),
 })
 
+const searchRateLimitType = new GraphQLObjectType({
+  name: 'SearchRateLimit',
+  description: 'Info about any rate-limiting for VC earned from search queries',
+  fields: () => ({
+    limitReached: {
+      type: GraphQLBoolean,
+      description:
+        "Whether we are currently rate-limiting the user's VC earned from searches",
+    },
+    reason: {
+      type: new GraphQLEnumType({
+        name: 'SearchRateLimitReason',
+        description:
+          "Why we are rate-limiting the user's VC earned from searches",
+        values: {
+          NONE: { value: 'NONE' },
+          ONE_MINUTE_MAX: { value: 'ONE_MINUTE_MAX' },
+          FIVE_MINUTE_MAX: { value: 'FIVE_MINUTE_MAX' },
+          DAILY_MAX: { value: 'DAILY_MAX' },
+        },
+      }),
+    },
+    checkIfHuman: {
+      type: GraphQLBoolean,
+      description: 'Whether we should present the user with a CAPTCHA',
+    },
+  }),
+})
+
 const ExperimentGroupsType = new GraphQLInputObjectType({
   name: 'ExperimentGroups',
   description: 'The experimental groups to which the user is assigned',
@@ -291,6 +321,9 @@ const ExperimentGroupsType = new GraphQLInputObjectType({
           NO_INTRO: { value: experimentConfig.searchIntro.NO_INTRO },
           INTRO_A: {
             value: experimentConfig.searchIntro.INTRO_A,
+          },
+          INTRO_HOMEPAGE: {
+            value: experimentConfig.searchIntro.INTRO_HOMEPAGE,
           },
         },
       }),
@@ -495,6 +528,12 @@ const userType = new GraphQLObjectType({
     searchesToday: {
       type: GraphQLInt,
       description: "User's search count for today",
+    },
+    searchRateLimit: {
+      type: searchRateLimitType,
+      description: 'Info about any search query rate-limiting',
+      resolve: (user, args, context) =>
+        checkSearchRateLimit(context.user, user.id),
     },
     maxSearchesDay: {
       type: maxSearchesDayType,

@@ -247,6 +247,7 @@ enum ExperimentGroupSearchIntro {
   NONE
   NO_INTRO
   INTRO_A
+  INTRO_HOMEPAGE
 }
 
 """The test of enabling a third ad"""
@@ -437,6 +438,26 @@ type Query {
 input ReferralData {
   referringUser: String
   referringChannel: String
+}
+
+"""Info about any rate-limiting for VC earned from search queries"""
+type SearchRateLimit {
+  """
+  Whether we are currently rate-limiting the user's VC earned from searches
+  """
+  limitReached: Boolean
+  reason: SearchRateLimitReason
+
+  """Whether we should present the user with a CAPTCHA"""
+  checkIfHuman: Boolean
+}
+
+"""Why we are rate-limiting the user's VC earned from searches"""
+enum SearchRateLimitReason {
+  NONE
+  ONE_MINUTE_MAX
+  FIVE_MINUTE_MAX
+  DAILY_MAX
 }
 
 input SetUserActiveWidgetInput {
@@ -640,6 +661,9 @@ type User implements Node {
 
   """User's search count for today"""
   searchesToday: Int
+
+  """Info about any search query rate-limiting"""
+  searchRateLimit: SearchRateLimit
 
   """Info about the user's day of most searches"""
   maxSearchesDay: MaxSearchesDay

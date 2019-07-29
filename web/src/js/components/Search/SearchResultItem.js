@@ -1,7 +1,10 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import ComputationSearchResult from 'js/components/Search/ComputationSearchResult'
 import NewsSearchResults from 'js/components/Search/NewsSearchResults'
 import TextAdSearchResult from 'js/components/Search/TextAdSearchResult'
+import TimeZoneSearchResult from 'js/components/Search/TimeZoneSearchResult'
+import VideoSearchResults from 'js/components/Search/VideoSearchResults'
 import WebPageSearchResult from 'js/components/Search/WebPageSearchResult'
 
 // Delegates search result item rendering to the appropriate component.
@@ -55,6 +58,33 @@ const SearchResultItem = props => {
           return null
         }
       }
+    }
+    case 'Computation': {
+      return (
+        <ComputationSearchResult
+          key={itemData.id}
+          item={itemData}
+          {...otherProps}
+        />
+      )
+    }
+    case 'TimeZone': {
+      return (
+        <TimeZoneSearchResult
+          key={itemData.id}
+          item={itemData}
+          {...otherProps}
+        />
+      )
+    }
+    case 'Videos': {
+      return (
+        <VideoSearchResults
+          key={'video-results'}
+          videoItems={itemData}
+          {...otherProps}
+        />
+      )
     }
     default: {
       // console.log(`Could not render item of type ${type}.`)

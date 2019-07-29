@@ -19,13 +19,19 @@ import {
   dashboardURL,
   modifyURLParams,
   searchBetaFeedback,
+  searchChromeExtensionPage,
+  searchFirefoxExtensionPage,
 } from 'js/navigation/navigation'
 import { externalRedirect } from 'js/navigation/utils'
 import Logo from 'js/components/Logo/Logo'
 import { parseUrlSearchString } from 'js/utils/utils'
 import SearchResults from 'js/components/Search/SearchResults'
 import SearchResultsQueryBing from 'js/components/Search/SearchResultsQueryBing'
-import { getSearchProvider, isReactSnapClient } from 'js/utils/search-utils'
+import {
+  getSearchProvider,
+  isReactSnapClient,
+  isSearchExtensionInstalled,
+} from 'js/utils/search-utils'
 import SearchMenuQuery from 'js/components/Search/SearchMenuQuery'
 import WikipediaQuery from 'js/components/Search/WikipediaQuery'
 import detectAdblocker from 'js/utils/detectAdblocker'
@@ -36,9 +42,13 @@ import {
 } from 'js/utils/local-user-data-mgr'
 import ErrorBoundary from 'js/components/General/ErrorBoundary'
 import ErrorBoundarySearchResults from 'js/components/Search/ErrorBoundarySearchResults'
-import { SEARCH_PROVIDER_BING } from 'js/constants'
-
-const Footer = lazy(() => import('js/components/General/Footer'))
+import {
+  SEARCH_PROVIDER_BING,
+  CHROME_BROWSER,
+  FIREFOX_BROWSER,
+} from 'js/constants'
+import { detectSupportedBrowser } from 'js/utils/detectBrowser'
+import Footer from 'js/components/General/Footer'
 
 const searchBoxBorderColor = '#ced4da'
 const searchBoxBorderColorFocused = '#bdbdbd'
@@ -81,8 +91,12 @@ class SearchPage extends React.Component {
   constructor(props) {
     super(props)
     this.state = {
+      // Important: set all client-specific state in componentDidMount,
+      // because we do HTML prerendering with these values.
+      browser: null,
       showIntroMessage: false,
       isAdBlockerEnabled: false,
+      isSearchExtensionInstalled: false,
       query: '',
       searchFeatureEnabled: isSearchPageEnabled(),
       defaultSearchProvider: getSearchProvider(),
@@ -119,6 +133,8 @@ class SearchPage extends React.Component {
       // time we do not know search state. We can remove this
       // from state if we switch to server-side rendering.
       mounted: true, // in other words, this is not React Snap prerendering
+      browser: detectSupportedBrowser(),
+      isSearchExtensionInstalled: isSearchExtensionInstalled(),
       query: query,
       page: this.getPageNumberFromSearchString(location.search),
       searchSource: parseUrlSearchString(location.search).src || null,
@@ -196,6 +212,8 @@ class SearchPage extends React.Component {
   render() {
     const { classes, searchProvider } = this.props
     const {
+      browser,
+      isSearchExtensionInstalled,
       isAdBlockerEnabled,
       mounted,
       page,
@@ -215,6 +233,10 @@ class SearchPage extends React.Component {
     if (this.state.searchRedirectToThirdParty) {
       return null
     }
+
+    const showExtensionInstallCTA =
+      !isSearchExtensionInstalled &&
+      [CHROME_BROWSER, FIREFOX_BROWSER].indexOf(browser) > -1
 
     return (
       <div
@@ -308,6 +330,26 @@ class SearchPage extends React.Component {
                 }
               />
             </div>
+            {mounted && showExtensionInstallCTA ? (
+              <div
+                data-test-id={'search-add-extension-cta'}
+                style={{ marginLeft: 30, marginRight: 10 }}
+              >
+                {browser === CHROME_BROWSER ? (
+                  <Link to={searchChromeExtensionPage}>
+                    <Button color={'primary'} variant={'contained'}>
+                      Add to Chrome
+                    </Button>
+                  </Link>
+                ) : browser === FIREFOX_BROWSER ? (
+                  <Link to={searchFirefoxExtensionPage}>
+                    <Button color={'primary'} variant={'contained'}>
+                      Add to Firefox
+                    </Button>
+                  </Link>
+                ) : null}
+              </div>
+            ) : null}
             <div
               style={{
                 marginLeft: 'auto',
@@ -316,6 +358,7 @@ class SearchPage extends React.Component {
               }}
             >
               <Link
+                data-test-id={'search-feedback'}
                 to={searchBetaFeedback}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -443,9 +486,9 @@ class SearchPage extends React.Component {
                       Please disable your ad blocker
                     </Typography>
                     <Typography variant={'body2'}>
-                      We use search ads to raise money for charity. You'll
-                      likely need to whitelist Search for a Cause for search
-                      results to show.
+                      We use search ads to raise money for charity! You'll
+                      likely need to whitelist Search for a Cause in your ad
+                      blocker to start doing good.
                     </Typography>
                     <div
                       style={{
@@ -515,7 +558,7 @@ class SearchPage extends React.Component {
             }}
           >
             {' '}
-            {showIntroMessage ? (
+            {mounted && showIntroMessage ? (
               <Paper
                 data-test-id={'search-intro-msg'}
                 elevation={1}
@@ -523,6 +566,8 @@ class SearchPage extends React.Component {
                   width: '100%',
                   boxSizing: 'border-box',
                   padding: '10px 18px',
+                  marginTop: -50, // for more prominence
+                  backgroundColor: '#ebfffc',
                   marginBottom: 20,
                 }}
               >
@@ -537,14 +582,20 @@ class SearchPage extends React.Component {
                     variant={'h6'}
                     style={{ marginTop: 8, marginBottom: 8 }}
                   >
-                    Your searches do good :)
+                    Your searches do good!
                   </Typography>
-                  <Typography variant={'body2'}>
-                    When you search, you raise money for charity! The money
-                    comes from the ads in search results, and you decide where
-                    the money goes by donating your Hearts to your favorite
-                    nonprofit.
+                  <Typography variant={'body2'} gutterBottom>
+                    When you search, you're raising money for charity! Choose
+                    your cause, from protecting the rainforest to giving cash to
+                    people who need it most.
                   </Typography>
+                  {showExtensionInstallCTA ? (
+                    <Typography variant={'body2'} gutterBottom>
+                      Make Search for a Cause your default search engine to
+                      change lives with{' '}
+                      <span style={{ fontStyle: 'italic' }}>every</span> search.
+                    </Typography>
+                  ) : null}
                   <div
                     style={{
                       display: 'flex',
@@ -554,7 +605,9 @@ class SearchPage extends React.Component {
                   >
                     <Button
                       color={'primary'}
-                      variant={'contained'}
+                      variant={
+                        showExtensionInstallCTA ? 'outlined' : 'contained'
+                      }
                       onClick={() => {
                         setUserDismissedSearchIntro()
                         this.setState({
@@ -564,6 +617,26 @@ class SearchPage extends React.Component {
                     >
                       Great!
                     </Button>
+                    {showExtensionInstallCTA ? (
+                      <div
+                        data-test-id={'search-intro-add-extension-cta'}
+                        style={{ marginLeft: 10 }}
+                      >
+                        {browser === CHROME_BROWSER ? (
+                          <Link to={searchChromeExtensionPage}>
+                            <Button color={'primary'} variant={'contained'}>
+                              Add to Chrome
+                            </Button>
+                          </Link>
+                        ) : browser === FIREFOX_BROWSER ? (
+                          <Link to={searchFirefoxExtensionPage}>
+                            <Button color={'primary'} variant={'contained'}>
+                              Add to Firefox
+                            </Button>
+                          </Link>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </div>
                 </span>
               </Paper>
@@ -582,13 +655,11 @@ class SearchPage extends React.Component {
             </ErrorBoundary>
           </div>
         </div>
-        <Suspense fallback={null}>
-          <Footer
-            style={{
-              marginTop: 'auto',
-            }}
-          />
-        </Suspense>
+        <Footer
+          style={{
+            marginTop: 'auto',
+          }}
+        />
       </div>
     )
   }

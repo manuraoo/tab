@@ -59,7 +59,10 @@ describe('SearchResultsQueryBing', () => {
     shallow(<SearchResultsQueryBing {...mockProps} />)
     await flushAllPromises()
     expect(fetchBingSearchResults).toHaveBeenCalledTimes(1)
-    expect(fetchBingSearchResults).toHaveBeenCalledWith('tacos', { page: 1 })
+    expect(fetchBingSearchResults).toHaveBeenCalledWith({
+      query: 'tacos',
+      page: 1,
+    })
   })
 
   it('calls fetchBingSearchResults when the query changes', async () => {
@@ -73,7 +76,10 @@ describe('SearchResultsQueryBing', () => {
     fetchBingSearchResults.mockClear()
     wrapper.setProps({ query: 'pizza' })
     expect(fetchBingSearchResults).toHaveBeenCalledTimes(1)
-    expect(fetchBingSearchResults).toHaveBeenCalledWith('pizza', { page: 1 })
+    expect(fetchBingSearchResults).toHaveBeenCalledWith({
+      query: 'pizza',
+      page: 1,
+    })
   })
 
   it('calls fetchBingSearchResults when the page changes, passing the new page number', async () => {
@@ -88,7 +94,10 @@ describe('SearchResultsQueryBing', () => {
     expect(fetchBingSearchResults).not.toHaveBeenCalled()
     wrapper.setProps({ page: 48 })
     expect(fetchBingSearchResults).toHaveBeenCalledTimes(1)
-    expect(fetchBingSearchResults).toHaveBeenCalledWith('tacos', { page: 48 })
+    expect(fetchBingSearchResults).toHaveBeenCalledWith({
+      query: 'tacos',
+      page: 48,
+    })
   })
 
   it('does not call fetchBingSearchResults when some unrelated prop changes', async () => {
@@ -651,6 +660,34 @@ describe('SearchResultsQueryBing', () => {
       results: {
         mainline: [
           {
+            key: 'TimeZone-https://www.bing.com/api/v7/#TimeZone',
+            type: 'TimeZone',
+            value: {
+              id: 'https://www.bing.com/api/v7/#TimeZone',
+              otherCityTimes: [
+                {
+                  location: 'Pensacola',
+                  time: '2015-10-23T12:04:56.6664294Z',
+                  utcOffset: 'UTC-5',
+                },
+              ],
+              primaryCityTime: {
+                location: 'Tallahassee, Florida, United States',
+                time: '2015-10-23T13:04:56.6774389Z',
+                utcOffset: 'UTC-4',
+              },
+            },
+          },
+          {
+            key: 'Computation-https://www.bingapis.com/api/v7/#Computation',
+            type: 'Computation',
+            value: {
+              expression: 'sqrt((4^2) + (8^2))',
+              id: 'https://www.bingapis.com/api/v7/#Computation',
+              value: '8.94427191',
+            },
+          },
+          {
             key:
               'WebPages-https://api.cognitive.microsoft.com/api/v7/#WebPages.0',
             type: 'WebPages',
@@ -922,6 +959,136 @@ describe('SearchResultsQueryBing', () => {
                 "This <b>really awesome</b> website is definitely what you're looking for.",
               url: expect.any(String),
             },
+          },
+          {
+            key: 'Videos',
+            type: 'Videos',
+            value: [
+              {
+                allowHttpsEmbed: true,
+                allowMobileEmbed: true,
+                contentUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                datePublished: '2009-10-25T06:57:33.0000000',
+                description:
+                  'Rick Astley - Never Gonna Give You Up (Official Video) - Listen On Spotify: http://smarturl.it/AstleySpotify Learn more about the brand new album ‘Beautiful Life’: https://RickAstley.lnk.to/BeautifulLi... Buy On iTunes: http://smarturl.it/AstleyGHiTunes Amazon: http://smarturl.it/AstleyGHAmazon Follow Rick Astley Website: http://www ...',
+                duration: 'PT3M33S',
+                embedHtml:
+                  '<iframe width="1280" height="720" src="http://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allowfullscreen></iframe>',
+                encodingFormat: 'mp4',
+                height: 720,
+                hostPageDisplayUrl:
+                  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrlPingSuffix: 'DevEx,5617.1',
+                isAccessibleForFree: true,
+                isSuperfresh: false,
+                motionThumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OM.NrH36WeODxx7Tg_1557133268&pid=Api',
+                name: 'Rick Astley - Never Gonna Give You Up (Video)',
+                publisher: [{ name: 'YouTube' }],
+                thumbnail: { width: 160, height: 119 },
+                thumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OVP.6PGH-QJhVEnKeMu2-91ajQHfFn&pid=Api',
+                viewCount: 573320051,
+                webSearchUrl:
+                  'https://www.bing.com/videos/search?q=rick%20roll&view=detail&mid=4E7B1C0F8E67E9F7B1364E7B1C0F8E67E9F7B136',
+                webSearchUrlPingSuffix: 'DevEx,5618.1',
+                width: 1280,
+              },
+              {
+                allowHttpsEmbed: true,
+                allowMobileEmbed: true,
+                contentUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                datePublished: '2009-10-25T06:57:33.0000000',
+                description:
+                  'Rick Astley - Never Gonna Give You Up (Official Video) - Listen On Spotify: http://smarturl.it/AstleySpotify Learn more about the brand new album ‘Beautiful Life’: https://RickAstley.lnk.to/BeautifulLi... Buy On iTunes: http://smarturl.it/AstleyGHiTunes Amazon: http://smarturl.it/AstleyGHAmazon Follow Rick Astley Website: http://www ...',
+                duration: 'PT3M33S',
+                embedHtml:
+                  '<iframe width="1280" height="720" src="http://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allowfullscreen></iframe>',
+                encodingFormat: 'mp4',
+                height: 720,
+                hostPageDisplayUrl:
+                  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrlPingSuffix: 'DevEx,5617.1',
+                isAccessibleForFree: true,
+                isSuperfresh: false,
+                motionThumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OM.NrH36WeODxx7Tg_1557133268&pid=Api',
+                name: 'Rick Astley - Never Gonna Give You Up (Video)',
+                publisher: [{ name: 'YouTube' }],
+                thumbnail: { width: 160, height: 119 },
+                thumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OVP.6PGH-QJhVEnKeMu2-91ajQHfFn&pid=Api',
+                viewCount: 573320051,
+                webSearchUrl:
+                  'https://www.bing.com/videos/search?q=rick%20roll&view=detail&mid=4E7B1C0F8E67E9F7B1364E7B1C0F8E67E9F7B136',
+                webSearchUrlPingSuffix: 'DevEx,5618.1',
+                width: 1280,
+              },
+              {
+                allowHttpsEmbed: true,
+                allowMobileEmbed: true,
+                contentUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                datePublished: '2009-10-25T06:57:33.0000000',
+                description:
+                  'Rick Astley - Never Gonna Give You Up (Official Video) - Listen On Spotify: http://smarturl.it/AstleySpotify Learn more about the brand new album ‘Beautiful Life’: https://RickAstley.lnk.to/BeautifulLi... Buy On iTunes: http://smarturl.it/AstleyGHiTunes Amazon: http://smarturl.it/AstleyGHAmazon Follow Rick Astley Website: http://www ...',
+                duration: 'PT3M33S',
+                embedHtml:
+                  '<iframe width="1280" height="720" src="http://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allowfullscreen></iframe>',
+                encodingFormat: 'mp4',
+                height: 720,
+                hostPageDisplayUrl:
+                  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrlPingSuffix: 'DevEx,5617.1',
+                isAccessibleForFree: true,
+                isSuperfresh: false,
+                motionThumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OM.NrH36WeODxx7Tg_1557133268&pid=Api',
+                name: 'Rick Astley - Never Gonna Give You Up (Video)',
+                publisher: [{ name: 'YouTube' }],
+                thumbnail: { width: 160, height: 119 },
+                thumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OVP.6PGH-QJhVEnKeMu2-91ajQHfFn&pid=Api',
+                viewCount: 573320051,
+                webSearchUrl:
+                  'https://www.bing.com/videos/search?q=rick%20roll&view=detail&mid=4E7B1C0F8E67E9F7B1364E7B1C0F8E67E9F7B136',
+                webSearchUrlPingSuffix: 'DevEx,5618.1',
+                width: 1280,
+              },
+              {
+                allowHttpsEmbed: true,
+                allowMobileEmbed: true,
+                contentUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                datePublished: '2009-10-25T06:57:33.0000000',
+                description:
+                  'Rick Astley - Never Gonna Give You Up (Official Video) - Listen On Spotify: http://smarturl.it/AstleySpotify Learn more about the brand new album ‘Beautiful Life’: https://RickAstley.lnk.to/BeautifulLi... Buy On iTunes: http://smarturl.it/AstleyGHiTunes Amazon: http://smarturl.it/AstleyGHAmazon Follow Rick Astley Website: http://www ...',
+                duration: 'PT3M33S',
+                embedHtml:
+                  '<iframe width="1280" height="720" src="http://www.youtube.com/embed/dQw4w9WgXcQ?autoplay=1" frameborder="0" allowfullscreen></iframe>',
+                encodingFormat: 'mp4',
+                height: 720,
+                hostPageDisplayUrl:
+                  'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+                hostPageUrlPingSuffix: 'DevEx,5617.1',
+                isAccessibleForFree: true,
+                isSuperfresh: false,
+                motionThumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OM.NrH36WeODxx7Tg_1557133268&pid=Api',
+                name: 'Rick Astley - Never Gonna Give You Up (Video)',
+                publisher: [{ name: 'YouTube' }],
+                thumbnail: { width: 160, height: 119 },
+                thumbnailUrl:
+                  'https://tse3.mm.bing.net/th?id=OVP.6PGH-QJhVEnKeMu2-91ajQHfFn&pid=Api',
+                viewCount: 573320051,
+                webSearchUrl:
+                  'https://www.bing.com/videos/search?q=rick%20roll&view=detail&mid=4E7B1C0F8E67E9F7B1364E7B1C0F8E67E9F7B136',
+                webSearchUrlPingSuffix: 'DevEx,5618.1',
+                width: 1280,
+              },
+            ],
           },
         ],
         pole: [],

@@ -261,12 +261,13 @@ class Dashboard extends React.Component {
               {this.state.showNotification ? (
                 <Notification
                   data-test-id={'global-notification'}
-                  title={`Vote for the June Charity Spotlight`}
+                  useGlobalDismissalTime
+                  title={`Vote for the July Charity Spotlight`}
                   message={`
                         Each month this year, we're highlighting a charity chosen by our
                         community. Nominate and vote for the nonprofit that means the most to you.`}
                   buttonText={'Vote'}
-                  buttonURL={'https://forms.gle/Yv6MjCUgJvhk1YnZA'}
+                  buttonURL={'https://forms.gle/xcXfPmvsYXrwMnqs7'}
                   onDismiss={() => {
                     this.setState({
                       showNotification: false,
@@ -322,15 +323,18 @@ class Dashboard extends React.Component {
                 />
               ) : null}
               {// @experiment-search-intro
-              searchIntroExperimentGroup ===
-                getExperimentGroups(EXPERIMENT_SEARCH_INTRO).INTRO_A &&
+              (searchIntroExperimentGroup ===
+                getExperimentGroups(EXPERIMENT_SEARCH_INTRO).INTRO_A ||
+                searchIntroExperimentGroup ===
+                  getExperimentGroups(EXPERIMENT_SEARCH_INTRO)
+                    .INTRO_HOMEPAGE) &&
               !(
                 user.experimentActions.searchIntro === 'CLICK' ||
                 user.experimentActions.searchIntro === 'DISMISS'
               ) &&
               user.tabs > 3 ? (
                 <Notification
-                  data-test-id={'search-intro-a'}
+                  data-test-id={'search-intro-notif'}
                   title={`We're working on Search for a Cause`}
                   message={
                     <span>
@@ -349,14 +353,28 @@ class Dashboard extends React.Component {
                     </span>
                   }
                   buttonText={'Try it out'}
+                  buttonURL={
+                    searchIntroExperimentGroup ===
+                    getExperimentGroups(EXPERIMENT_SEARCH_INTRO).INTRO_HOMEPAGE
+                      ? 'https://search.gladly.io'
+                      : browser === CHROME_BROWSER
+                      ? searchChromeExtensionPage
+                      : browser === FIREFOX_BROWSER
+                      ? searchFirefoxExtensionPage
+                      : searchChromeExtensionPage
+                  }
                   onClick={async () => {
-                    // Log the click.
-                    await LogUserExperimentActionsMutation({
-                      userId: user.id,
-                      experimentActions: {
-                        [EXPERIMENT_SEARCH_INTRO]: 'CLICK',
-                      },
-                    })
+                    try {
+                      // Log the click.
+                      await LogUserExperimentActionsMutation({
+                        userId: user.id,
+                        experimentActions: {
+                          [EXPERIMENT_SEARCH_INTRO]: 'CLICK',
+                        },
+                      })
+                    } catch (e) {
+                      console.error(e)
+                    }
 
                     // Hide the message because we don't want the user to
                     // need to dismiss it after clicking the action, which
@@ -364,23 +382,19 @@ class Dashboard extends React.Component {
                     this.setState({
                       searchIntroExperimentGroup: false,
                     })
-
-                    if (browser === CHROME_BROWSER) {
-                      goTo(searchChromeExtensionPage)
-                    } else if (browser === FIREFOX_BROWSER) {
-                      goTo(searchFirefoxExtensionPage)
-                    } else {
-                      goTo(searchChromeExtensionPage)
-                    }
                   }}
                   onDismiss={async () => {
-                    // Log the dismissal.
-                    await LogUserExperimentActionsMutation({
-                      userId: user.id,
-                      experimentActions: {
-                        [EXPERIMENT_SEARCH_INTRO]: 'DISMISS',
-                      },
-                    })
+                    try {
+                      // Log the dismissal.
+                      await LogUserExperimentActionsMutation({
+                        userId: user.id,
+                        experimentActions: {
+                          [EXPERIMENT_SEARCH_INTRO]: 'DISMISS',
+                        },
+                      })
+                    } catch (e) {
+                      console.error(e)
+                    }
                     this.setState({
                       searchIntroExperimentGroup: false,
                     })
