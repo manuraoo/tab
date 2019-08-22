@@ -1,23 +1,20 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import { get } from 'lodash/object'
 import TextField from '@material-ui/core/TextField'
 import { withStyles } from '@material-ui/core/styles'
-import { alternateAccentColor } from 'js/theme/default'
 import LogReferralLinkClick from 'js/mutations/LogReferralLinkClickMutation'
 import logger from 'js/utils/logger'
 
-// Can replace this with a proper theme after fully migrating to
-// material-ui 1.0.
-// https://github.com/callemall/material-ui/blob/v1-beta/src/Input/Input.js#L78
 const styles = theme => ({
   inputUnderline: {
     '&:after': {
-      borderColor: alternateAccentColor,
+      borderColor: theme.palette.secondary.main,
     },
   },
   formLabelRoot: {
     '&$formLabelFocused': {
-      color: alternateAccentColor,
+      color: theme.palette.secondary.main,
     },
   },
   formLabelFocused: {},
@@ -25,13 +22,12 @@ const styles = theme => ({
 
 class InviteFriend extends React.Component {
   getReferralUrl() {
-    const {
-      user: { username },
-    } = this.props
-    const baseURL = 'https://tab.gladly.io'
+    const { baseURL, user } = this.props
+    const username = get(user, 'username')
+    const rootURL = baseURL || 'https://tab.gladly.io'
     const referralUrl = username
-      ? `${baseURL}/?u=${encodeURIComponent(username)}`
-      : baseURL
+      ? `${rootURL}/?u=${encodeURIComponent(username)}`
+      : rootURL
     return referralUrl
   }
 
@@ -44,15 +40,17 @@ class InviteFriend extends React.Component {
     // which helps us gauge attempted but unsuccessful
     // referrals.
     const { user } = this.props
-    return LogReferralLinkClick({
-      userId: user.id,
-    }).catch(e => {
-      logger.error(e)
-    })
+    if (user) {
+      return LogReferralLinkClick({
+        userId: user.id,
+      }).catch(e => {
+        logger.error(e)
+      })
+    }
   }
 
   render() {
-    const { classes } = this.props
+    const { classes, user } = this.props
     const referralUrl = this.getReferralUrl()
 
     return (
@@ -65,19 +63,13 @@ class InviteFriend extends React.Component {
         value={referralUrl}
         label={'Share this link'}
         helperText={
-          this.props.user.username
+          get(user, 'username')
             ? `and you'll get 350 Hearts for every person who joins!`
             : `and have a bigger positive impact!`
         }
         InputProps={{
           classes: {
             underline: classes.inputUnderline,
-          },
-        }}
-        /* eslint-disable-next-line react/jsx-no-duplicate-props */
-        inputProps={{
-          style: {
-            textAlign: 'left',
           },
         }}
         InputLabelProps={{
@@ -93,6 +85,7 @@ class InviteFriend extends React.Component {
 }
 
 InviteFriend.propTypes = {
+  baseURL: PropTypes.string,
   user: PropTypes.shape({
     id: PropTypes.string.isRequired,
     username: PropTypes.string,

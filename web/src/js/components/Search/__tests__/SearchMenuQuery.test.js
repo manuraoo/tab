@@ -12,6 +12,36 @@ afterEach(() => {
   jest.resetModules()
 })
 
+describe('withUser HOC in SearchMenuQuery', () => {
+  beforeEach(() => {
+    jest.resetModules()
+  })
+
+  it('is called with the expected options', () => {
+    const withUser = require('js/components/General/withUser').default
+
+    /* eslint-disable-next-line no-unused-expressions */
+    require('js/components/Search/SearchMenuQuery').default
+    expect(withUser).toHaveBeenCalledWith({
+      app: 'search',
+      createUserIfPossible: false,
+      redirectToAuthIfIncomplete: false,
+      renderIfNoUser: true,
+    })
+  })
+
+  it('wraps the SearchMenuQuery component', () => {
+    const {
+      __mockWithUserWrappedFunction,
+    } = require('js/components/General/withUser')
+
+    /* eslint-disable-next-line no-unused-expressions */
+    require('js/components/Search/SearchMenuQuery').default
+    const wrappedComponent = __mockWithUserWrappedFunction.mock.calls[0][0]
+    expect(wrappedComponent.name).toEqual('SearchMenuQuery')
+  })
+})
+
 describe('SearchMenuQuery', () => {
   it('renders without error', () => {
     const SearchMenuQuery = require('js/components/Search/SearchMenuQuery')
@@ -123,5 +153,49 @@ describe('SearchMenuQuery', () => {
     const SearchMenuContainer = require('js/components/Search/SearchMenuContainer')
       .default
     expect(wrapper.find(SearchMenuContainer).length).toBe(0)
+  })
+
+  it('passes the "isSearchExtensionInstalled" prop to the SearchMenuContainer', () => {
+    const fakeProps = {
+      app: {
+        some: 'value',
+      },
+      user: {
+        id: 'abc123xyz456',
+        vc: 233,
+      },
+    }
+    const { QueryRenderer } = require('react-relay')
+    QueryRenderer.__setQueryResponse({
+      error: null,
+      props: fakeProps,
+      retry: jest.fn(),
+    })
+
+    const SearchMenuQuery = require('js/components/Search/SearchMenuQuery')
+      .default
+    const wrapper = mount(
+      <SearchMenuQuery
+        isSearchExtensionInstalled={false}
+        location={{
+          search: '?q=tacos',
+        }}
+      />
+    )
+    const SearchMenuContainer = require('js/components/Search/SearchMenuContainer')
+      .default
+    expect(
+      wrapper.find(SearchMenuContainer).prop('isSearchExtensionInstalled')
+    ).toEqual(false)
+    wrapper.setProps({ isSearchExtensionInstalled: true })
+    expect(
+      wrapper.find(SearchMenuContainer).prop('isSearchExtensionInstalled')
+    ).toEqual(true)
+
+    // By default, pass that the search extension is installed.
+    wrapper.setProps({ isSearchExtensionInstalled: undefined })
+    expect(
+      wrapper.find(SearchMenuContainer).prop('isSearchExtensionInstalled')
+    ).toEqual(true)
   })
 })

@@ -138,10 +138,14 @@ export const inviteFriendsURL = '/newtab/profile/invite/'
 export const accountURL = '/newtab/account/'
 
 // Search
+export const searchHomeURL = 'https://search.gladly.io'
 export const searchBaseURL = '/search'
-
-// TODO: for convenience, make '/search/auth/' redirect to
-//   /newtab/auth/?app=search
+export const searchAuthURL = '/search/auth/'
+export const searchDonateHeartsURL = '/search/profile/donate/'
+export const searchInviteFriendsURL = '/search/profile/invite/'
+export const searchAccountURL = '/search/account/'
+export const searchExternalHelpURL =
+  'https://gladly.zendesk.com/hc/en-us/categories/360001779552-Search-for-a-Cause'
 
 // Homepage
 
