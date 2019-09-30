@@ -17,6 +17,9 @@ import { SEARCH_APP } from 'js/constants'
 const SearchSettingsPageComponent = lazy(() =>
   import('js/components/Search/Settings/SearchSettingsPageComponent')
 )
+const FirstSearchView = lazy(() =>
+  import('js/components/Search/FirstSearchView')
+)
 
 const muiTheme = createMuiTheme(defaultSearchTheme)
 
@@ -26,8 +29,10 @@ class SearchApp extends React.Component {
     return (
       <MuiThemeProvider theme={muiTheme}>
         <ErrorBoundary brand={SEARCH_APP}>
-          <Helmet>
-            <title>Search for a Cause</title>
+          <Helmet
+            titleTemplate={`%s - Search for a Cause`}
+            defaultTitle={'Search for a Cause'}
+          >
             <link rel="icon" href={searchFavicon} />
           </Helmet>
           <div>
@@ -60,6 +65,11 @@ class SearchApp extends React.Component {
                   exact
                   path="/search/uninstalled/"
                   component={SearchPostUninstallView}
+                />
+                <Route
+                  exact
+                  path="/search/first-search/"
+                  component={FirstSearchView}
                 />
                 <Route
                   exact

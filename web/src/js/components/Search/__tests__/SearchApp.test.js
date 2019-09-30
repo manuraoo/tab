@@ -4,6 +4,7 @@ import React from 'react'
 import { shallow } from 'enzyme'
 import { Route } from 'react-router-dom'
 import { MuiThemeProvider } from '@material-ui/core/styles'
+import { Helmet } from 'react-helmet'
 import V0MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import SearchAuthRedirect from 'js/components/Search/SearchAuthRedirect'
 import SearchPageComponent from 'js/components/Search/SearchPageComponent'
@@ -14,6 +15,7 @@ import ErrorBoundary from 'js/components/General/ErrorBoundary'
 jest.mock('js/components/Search/SearchPageComponent')
 jest.mock('js/components/Search/SearchPostUninstallView')
 jest.mock('js/components/Search/SearchRandomQueryView')
+jest.mock('js/assets/logos/search-favicon.png', () => '/example/favicon.png')
 
 describe('SearchApp', () => {
   it('renders without error', () => {
@@ -31,6 +33,36 @@ describe('SearchApp', () => {
     const SearchApp = require('js/components/Search/SearchApp').default
     const wrapper = shallow(<SearchApp />)
     expect(wrapper.find(MuiThemeProvider).exists()).toBe(true)
+  })
+
+  it('sets the the favicon with react-helmet', async () => {
+    const SearchApp = require('js/components/Search/SearchApp').default
+    const wrapper = shallow(<SearchApp />)
+    expect(
+      wrapper
+        .find(Helmet)
+        .find('link')
+        .first()
+        .prop('rel')
+    ).toEqual('icon')
+    expect(
+      wrapper
+        .find(Helmet)
+        .find('link')
+        .first()
+        .prop('href')
+    ).toEqual('/example/favicon.png')
+  })
+
+  it('sets the the titleTemplate and defaultTitle with react-helmet', async () => {
+    const SearchApp = require('js/components/Search/SearchApp').default
+    const wrapper = shallow(<SearchApp />)
+    expect(wrapper.find(Helmet).prop('titleTemplate')).toEqual(
+      '%s - Search for a Cause'
+    )
+    expect(wrapper.find(Helmet).prop('defaultTitle')).toEqual(
+      'Search for a Cause'
+    )
   })
 
   it('contains an error boundary', async () => {
@@ -126,6 +158,17 @@ describe('SearchApp', () => {
       .filterWhere(n => n.prop('path') === '/search/random/')
     expect(route.exists()).toBe(true)
     expect(route.prop('component')).toBe(SearchRandomQueryView)
+  })
+
+  it('contains the "first search" route', async () => {
+    const SearchApp = require('js/components/Search/SearchApp').default
+    const wrapper = shallow(<SearchApp />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/search/first-search/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
   })
 
   it('contains the "profile" route', async () => {

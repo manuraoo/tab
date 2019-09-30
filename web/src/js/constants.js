@@ -71,6 +71,8 @@ export const STORAGE_DISMISSED_AD_EXPLANATION =
   'tab.newUser.dismissedAdExplanation'
 export const STORAGE_CLICKED_NEW_TAB_SEARCH_INTRO =
   'tab.newUser.clickedNewTabSearchIntro'
+export const STORAGE_CLICKED_NEW_TAB_SEARCH_INTRO_V2 =
+  'tab.newUser.clickedNewTabSearchIntroV2'
 
 // tab.experiments: values related to split-testing features
 // We may assign other values to localStorage with the tab.experiments.*
@@ -89,6 +91,12 @@ export const SEARCH_STORAGE_NEW_USER_HAS_DISMISSED_INTRO =
 
 // search.user: values related to the Search for a Cause user.
 export const SEARCH_STORAGE_USER_BING_CLIENT_ID = 'search.user.bingClientID'
+
+// search.referralData: referral data set on homepage
+export const SEARCH_STORAGE_REFERRAL_DATA_REFERRING_USER =
+  'search.referralData.referringUser'
+export const SEARCH_STORAGE_REFERRAL_DATA_REFERRING_CHANNEL =
+  'search.referralData.referringChannel'
 
 /**
   Error codes passed from server-side.
@@ -113,3 +121,6 @@ export const SEARCH_SRC_CHROME_EXTENSION = 'chrome'
 export const SEARCH_SRC_FIREFOX_EXTENSION = 'ff'
 export const SEARCH_SRC_TAB_FOR_A_CAUSE = 'tab'
 export const SEARCH_SRC_OWN_PAGE = 'self'
+
+export const SEARCH_INTRO_QUERY_ENGLISH =
+  'How many searches do people make every day?'

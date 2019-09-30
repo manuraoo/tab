@@ -3,27 +3,35 @@
 import React from 'react'
 import { shallow } from 'enzyme'
 import {
+  onAuthStateChanged,
   __getAuthListenerCallbacks,
   __unregisterAuthStateChangeListeners,
   __triggerAuthStateChange,
 } from 'js/authentication/user'
-import { flushAllPromises } from 'js/utils/test-utils'
+import { flushAllPromises, setWindowLocation } from 'js/utils/test-utils'
 import {
   createAnonymousUserIfPossible,
   redirectToAuthIfNeeded,
 } from 'js/authentication/helpers'
 import logger from 'js/utils/logger'
 import { SEARCH_APP, TAB_APP } from 'js/constants'
+import { isReactSnapClient } from 'js/utils/search-utils'
 
 jest.mock('js/authentication/user')
 jest.mock('js/authentication/helpers')
 jest.mock('js/utils/logger')
+jest.mock('js/utils/search-utils')
 
 afterEach(() => {
   jest.clearAllMocks()
   createAnonymousUserIfPossible.mockResolvedValue(null)
   redirectToAuthIfNeeded.mockReturnValue(false)
+  isReactSnapClient.mockReturnValue(false)
   __unregisterAuthStateChangeListeners()
+  setWindowLocation({
+    href: 'https://example.gladly.io/newtab/profile/donate/',
+    path: '/newtab/profile/donate/',
+  })
 })
 
 describe('withUser', () => {
@@ -180,6 +188,44 @@ describe('withUser', () => {
 
     await flushAllPromises()
     expect(wrapper.find(MockComponent).exists()).toBe(true)
+  })
+
+  it('renders children before determining the auth state when options.renderWhileDeterminingAuthState and options.renderIfNoUser are true', async () => {
+    expect.assertions(1)
+
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+
+    // Allow an unauthed user.
+    const WrappedComponent = withUser({
+      renderIfNoUser: true,
+      renderWhileDeterminingAuthState: true,
+    })(MockComponent)
+
+    const wrapper = shallow(<WrappedComponent />)
+
+    // Auth state not yet determined
+    await flushAllPromises()
+    expect(wrapper.find(MockComponent).exists()).toBe(true)
+  })
+
+  it('does not render children before determining the auth state when options.renderWhileDeterminingAuthState is true but options.renderIfNoUser is false (and the user is null)', async () => {
+    expect.assertions(1)
+
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+
+    // Allow an unauthed user.
+    const WrappedComponent = withUser({
+      renderIfNoUser: false,
+      renderWhileDeterminingAuthState: true,
+    })(MockComponent)
+
+    const wrapper = shallow(<WrappedComponent />)
+
+    // Auth state not yet determined
+    await flushAllPromises()
+    expect(wrapper.find(MockComponent).exists()).toBe(false)
   })
 
   it('renders children only after determining the auth state, when we create a new anonymous user', async () => {
@@ -561,6 +607,33 @@ describe('withUser', () => {
     })
   })
 
+  it('passes the "next" URL parameter value to redirectToAuthIfNeeded, using the window.location.href', async () => {
+    expect.assertions(1)
+
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+    const WrappedComponent = withUser()(MockComponent)
+
+    setWindowLocation({
+      href: 'https://example.gladly.io/newtab/profile/donate/',
+      path: '/newtab/profile/donate/',
+    })
+    shallow(<WrappedComponent />)
+    __triggerAuthStateChange({
+      id: 'abc123',
+      email: null,
+      username: null,
+      isAnonymous: false,
+      emailVerified: false,
+    })
+    await flushAllPromises()
+    expect(redirectToAuthIfNeeded.mock.calls[0][0]).toMatchObject({
+      urlParams: {
+        next: 'https://example.gladly.io/newtab/profile/donate/',
+      },
+    })
+  })
+
   it('renders children when we would have redirected to an auth page but the "redirectToAuthIfIncomplete" option is false', async () => {
     expect.assertions(1)
 
@@ -646,5 +719,89 @@ describe('withUser', () => {
     jest.advanceTimersByTime(4e4)
     await flushAllPromises()
     expect(logger.error).not.toHaveBeenCalled()
+  })
+
+  it('by default, does not call onAuthStateChanged when prerendering and instead sets a null user', async () => {
+    expect.assertions(2)
+
+    isReactSnapClient.mockReturnValue(true)
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+
+    const WrappedComponent = withUser({
+      renderIfNoUser: true,
+    })(MockComponent)
+
+    const wrapper = shallow(<WrappedComponent />)
+    await flushAllPromises()
+    expect(onAuthStateChanged).not.toHaveBeenCalled()
+    expect(wrapper.find(MockComponent).prop('authUser')).toBeNull()
+  })
+
+  it('when options.setNullUserWhenPrerendering is true, does not call onAuthStateChanged when prerendering and instead sets a null user', async () => {
+    expect.assertions(2)
+
+    isReactSnapClient.mockReturnValue(true)
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+
+    const WrappedComponent = withUser({
+      setNullUserWhenPrerendering: true,
+      renderIfNoUser: true,
+    })(MockComponent)
+
+    const wrapper = shallow(<WrappedComponent />)
+    await flushAllPromises()
+    expect(onAuthStateChanged).not.toHaveBeenCalled()
+    expect(wrapper.find(MockComponent).prop('authUser')).toBeNull()
+  })
+
+  it('when options.setNullUserWhenPrerendering is false, calls onAuthStateChanged when prerendering', async () => {
+    expect.assertions(1)
+
+    isReactSnapClient.mockReturnValue(true)
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+
+    const WrappedComponent = withUser({
+      setNullUserWhenPrerendering: false,
+    })(MockComponent)
+
+    shallow(<WrappedComponent />)
+    await flushAllPromises()
+    expect(onAuthStateChanged).toHaveBeenCalledTimes(1)
+  })
+
+  it('when options.setNullUserWhenPrerendering is true but we are not in a prerendering environment, calls onAuthStateChanged', async () => {
+    expect.assertions(1)
+
+    isReactSnapClient.mockReturnValue(false)
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+
+    const WrappedComponent = withUser({
+      setNullUserWhenPrerendering: true,
+    })(MockComponent)
+
+    shallow(<WrappedComponent />)
+    await flushAllPromises()
+    expect(onAuthStateChanged).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not return any component when options.renderIfNoUser is false and options.setNullUserWhenPrerendering is true', async () => {
+    expect.assertions(1)
+
+    isReactSnapClient.mockReturnValue(true)
+    const withUser = require('js/components/General/withUser').default
+    const MockComponent = () => null
+
+    const WrappedComponent = withUser({
+      renderIfNoUser: false,
+      setNullUserWhenPrerendering: true,
+    })(MockComponent)
+
+    const wrapper = shallow(<WrappedComponent />)
+    await flushAllPromises()
+    expect(wrapper.find(MockComponent).exists()).toBe(false)
   })
 })

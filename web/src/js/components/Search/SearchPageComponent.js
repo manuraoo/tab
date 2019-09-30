@@ -10,6 +10,8 @@ import Tab from '@material-ui/core/Tab'
 import Paper from '@material-ui/core/Paper'
 import Button from '@material-ui/core/Button'
 import Typography from '@material-ui/core/Typography'
+import { Helmet } from 'react-helmet'
+import withUser from 'js/components/General/withUser'
 import {
   isSearchPageEnabled,
   shouldRedirectSearchToThirdParty,
@@ -21,10 +23,11 @@ import {
   searchBetaFeedback,
   searchChromeExtensionPage,
   searchFirefoxExtensionPage,
+  searchHomeURL,
 } from 'js/navigation/navigation'
 import { externalRedirect } from 'js/navigation/utils'
 import Logo from 'js/components/Logo/Logo'
-import { parseUrlSearchString } from 'js/utils/utils'
+import { makePromiseCancelable, parseUrlSearchString } from 'js/utils/utils'
 import SearchResults from 'js/components/Search/SearchResults'
 import SearchResultsQueryBing from 'js/components/Search/SearchResultsQueryBing'
 import {
@@ -50,6 +53,7 @@ import {
 } from 'js/constants'
 import { detectSupportedBrowser } from 'js/utils/detectBrowser'
 import Footer from 'js/components/General/Footer'
+import logger from 'js/utils/logger'
 
 const searchBoxBorderColor = '#ced4da'
 const searchBoxBorderColorFocused = '#bdbdbd'
@@ -92,17 +96,18 @@ class SearchPage extends React.Component {
       // Important: set all client-specific state in componentDidMount,
       // because we do HTML prerendering with these values.
       browser: null,
-      showIntroMessage: false,
-      isAdBlockerEnabled: false,
-      isSearchExtensionInstalled: false,
-      query: '',
-      searchFeatureEnabled: isSearchPageEnabled(),
       defaultSearchProvider: getSearchProvider(),
-      searchRedirectToThirdParty: shouldRedirectSearchToThirdParty(),
-      searchSource: null,
-      searchText: '',
+      isAdBlockerEnabled: false,
+      isSearchExtensionInstalled: true, // assume installed until confirmed
       mounted: false, // i.e. we've mounted to a real user, not pre-rendering
+      searchFeatureEnabled: isSearchPageEnabled(),
+      searchRedirectToThirdParty: shouldRedirectSearchToThirdParty(),
+      searchText: '',
+      showIntroMessage: false,
     }
+
+    this.isExtInstalledCancelablePromise = null
+    this.detectAdblockerCancelablePromise = null
   }
 
   componentDidMount() {
@@ -114,10 +119,7 @@ class SearchPage extends React.Component {
       // Cannot use pushState now that the apps are separate.
       externalRedirect(dashboardURL)
     }
-    const { location } = this.props
-
-    // Wait until after mount to update prerendered state.
-    const query = parseUrlSearchString(location.search).q || ''
+    const query = this.getSearchQueryFromURL()
 
     // Redirect to Google if enabled.
     if (this.state.searchRedirectToThirdParty) {
@@ -126,65 +128,120 @@ class SearchPage extends React.Component {
 
     this.setState({
       // We always derive the query and page values URL parameter
-      // values. We keep these in state so that we update the
-      // prerendered components after mount, because at prerender
-      // time we do not know search state. We can remove this
-      // from state if we switch to server-side rendering.
+      // values.
       mounted: true, // in other words, this is not React Snap prerendering
       browser: detectSupportedBrowser(),
-      isSearchExtensionInstalled: isSearchExtensionInstalled(),
-      query: query,
-      page: this.getPageNumberFromSearchString(location.search),
-      searchSource: parseUrlSearchString(location.search).src || null,
       searchText: query,
       showIntroMessage: !hasUserDismissedSearchIntro(),
     })
 
     // AdBlockerDetection
-    detectAdblocker()
+    this.detectAdblockerCancelablePromise = makePromiseCancelable(
+      detectAdblocker()
+    )
+    this.detectAdblockerCancelablePromise.promise
       .then(isEnabled => {
         this.setState({
           isAdBlockerEnabled: isEnabled,
         })
       })
       .catch(e => {
+        if (e && e.isCanceled) {
+          return
+        }
         console.error(e)
+      })
+
+    // Check if the Search extension is installed.
+    this.isExtInstalledCancelablePromise = makePromiseCancelable(
+      isSearchExtensionInstalled()
+    )
+    this.isExtInstalledCancelablePromise.promise
+      .then(isInstalled => {
+        this.setState({
+          isSearchExtensionInstalled: isInstalled,
+        })
+      })
+      .catch(e => {
+        if (e && e.isCanceled) {
+          return
+        }
+        logger.error(e)
       })
   }
 
-  componentDidUpdate(prevProps) {
-    const { location } = this.props
-    const currentQuery = parseUrlSearchString(location.search).q
-    const prevQuery = parseUrlSearchString(prevProps.location.search).q
-    if (currentQuery !== prevQuery) {
-      this.setState({
-        query: currentQuery,
-        searchText: currentQuery,
-      })
+  componentWillUnmount() {
+    // Cancel any pending promises.
+    if (
+      this.isExtInstalledCancelablePromise &&
+      this.isExtInstalledCancelablePromise.cancel
+    ) {
+      this.isExtInstalledCancelablePromise.cancel()
     }
+    if (
+      this.detectAdblockerCancelablePromise &&
+      this.detectAdblockerCancelablePromise.cancel
+    ) {
+      this.detectAdblockerCancelablePromise.cancel()
+    }
+  }
 
-    // Check if the page number has changed.
-    const currentPage = this.getPageNumberFromSearchString(location.search)
-    const prevPage = this.getPageNumberFromSearchString(
-      prevProps.location.search
-    )
-    if (currentPage !== prevPage) {
+  componentDidUpdate(prevProps) {
+    const { location: { search: previousSearchStr = '' } = {} } = prevProps
+    const previousQuery = this.getSearchQueryFromURL(previousSearchStr)
+    const currentQuery = this.getSearchQueryFromURL()
+    if (currentQuery !== previousQuery) {
       this.setState({
-        page: currentPage,
+        searchText: currentQuery,
       })
     }
   }
 
   /**
-   * Take a search string, such as ?abc=hi&p=12, and return the
-   * integer value of the "page" URL parameter. If the parameter is
+   * Get the integer value of the search results page number from the
+   * "page" URL parameter. During prerendering, or if the parameter is
    * not set or is not an integer, return 1.
+   * @return {Number} The search results page index
+   */
+  getPageNumberFromURL() {
+    if (isReactSnapClient()) {
+      return 1
+    }
+    const { location: { search = '' } = {} } = this.props
+    return parseInt(parseUrlSearchString(search).page, 10) || 1
+  }
+
+  /**
+   * Get the search query string from the "q" URL parameter.
+   * By default, get it from the current location; or, if passed a
+   * searchStr parameter, get it from that search string. During
+   * prerendering, or if the parameter is not set, return an empty
+   * string
    * @param {String} searchStr - The URL parameter string,
    *   such as '?myParam=foo&another=bar'
-   * @return {Number} The search results page inded
+   * @return {String} The decoded search query
    */
-  getPageNumberFromSearchString(searchStr) {
-    return parseInt(parseUrlSearchString(searchStr).page, 10) || 1
+  getSearchQueryFromURL(searchStr) {
+    if (isReactSnapClient()) {
+      return ''
+    }
+    const { location: { search = '' } = {} } = this.props
+    const searchStrToParse = searchStr ? searchStr : search
+    return parseUrlSearchString(searchStrToParse).q || ''
+  }
+
+  /**
+   * Get the integer value of the search's source from the "src"
+   * URL parameter. During prerendering, or if the parameter is
+   * not set, return null.
+   * @return {String|null} The source of the search query
+   */
+  getSearchSourceFromURL() {
+    if (isReactSnapClient()) {
+      return null
+    }
+    const { location: { search = '' } = {} } = this.props
+    return parseUrlSearchString(search).src || null
   }
 
   search() {
@@ -194,9 +251,6 @@ class SearchPage extends React.Component {
         page: 1,
         q: newQuery,
         src: 'self',
-      })
-      this.setState({
-        searchSource: 'self',
       })
     }
   }
@@ -214,14 +268,16 @@ class SearchPage extends React.Component {
       isSearchExtensionInstalled,
       isAdBlockerEnabled,
       mounted,
-      page,
-      query,
       showIntroMessage,
       defaultSearchProvider,
-      searchSource,
       searchText,
     } = this.state
+
+    const page = this.getPageNumberFromURL()
+    const query = this.getSearchQueryFromURL()
     const queryEncoded = query ? encodeURI(query) : ''
+    const searchSource = this.getSearchSourceFromURL()
+
     const searchResultsPaddingLeft = 150
     if (!this.state.searchFeatureEnabled) {
       return null
@@ -247,6 +303,7 @@ class SearchPage extends React.Component {
           flexDirection: 'column',
         }}
       >
+        <Helmet>{query ? <title>{query}</title> : null}</Helmet>
         <div
           style={{
             backgroundColor: '#fff',
@@ -267,23 +324,25 @@ class SearchPage extends React.Component {
                 height: 40,
               }}
             >
-              <Logo
-                brand={SEARCH_APP}
-                includeText
-                style={{
-                  width: 116,
-                }}
-              />
-              <Typography
-                color={'primary'}
-                variant={'overline'}
-                style={{
-                  lineHeight: '60%',
-                  fontWeight: 'bold',
-                }}
-              >
-                beta
-              </Typography>
+              <Link to={searchHomeURL}>
+                <Logo
+                  brand={SEARCH_APP}
+                  includeText
+                  style={{
+                    width: 116,
+                  }}
+                />
+                <Typography
+                  color={'primary'}
+                  variant={'overline'}
+                  style={{
+                    lineHeight: '60%',
+                    fontWeight: 'bold',
+                  }}
+                >
+                  beta
+                </Typography>
+              </Link>
             </div>
             <div
               style={{
@@ -392,7 +451,10 @@ class SearchPage extends React.Component {
               label="Images"
               target="_top"
               href={
-                queryEncoded
+                // Checking if it's mounted fixes a bug where the Tab href does
+                // not update after it's prerendered. Not sure if this is a
+                // MUI bug or our error.
+                mounted && queryEncoded
                   ? `https://www.google.com/search?q=${queryEncoded}&tbm=isch`
                   : 'https://images.google.com'
               }
@@ -404,7 +466,7 @@ class SearchPage extends React.Component {
               label="News"
               target="_top"
               href={
-                queryEncoded
+                mounted && queryEncoded
                   ? `https://www.google.com/search?q=${queryEncoded}&tbm=nws`
                   : 'https://www.google.com'
               }
@@ -416,7 +478,7 @@ class SearchPage extends React.Component {
               label="Videos"
               target="_top"
               href={
-                queryEncoded
+                mounted && queryEncoded
                   ? `https://www.google.com/search?q=${queryEncoded}&tbm=vid`
                   : 'https://www.google.com'
               }
@@ -428,7 +490,7 @@ class SearchPage extends React.Component {
               label="Maps"
               target="_top"
               href={
-                queryEncoded
+                mounted && queryEncoded
                   ? `https://www.google.com/maps/?q=${queryEncoded}`
                   : 'https://www.google.com/maps'
               }
@@ -605,9 +667,7 @@ class SearchPage extends React.Component {
                   >
                     <Button
                       color={'primary'}
-                      variant={
-                        showExtensionInstallCTA ? 'outlined' : 'contained'
-                      }
+                      variant={'outlined'}
                       onClick={() => {
                         setUserDismissedSearchIntro()
                         this.setState({
@@ -676,4 +736,17 @@ SearchPage.propTypes = {
 
 SearchPage.defaultProps = {}
 
-export default withStyles(styles, { withTheme: true })(SearchPage)
+export default withStyles(styles, { withTheme: true })(
+  withUser({
+    app: SEARCH_APP,
+    createUserIfPossible: false,
+    // We want to:
+    // - render children immediately (without waiting on any auth determination)
+    // - prerender child HTML assuming no authed user
+    // - redirect to the auth page in production if the user is not signed in
+    redirectToAuthIfIncomplete: true,
+    renderIfNoUser: true,
+    renderWhileDeterminingAuthState: true,
+    setNullUserWhenPrerendering: true,
+  })(SearchPage)
+)

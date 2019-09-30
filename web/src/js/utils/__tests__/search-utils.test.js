@@ -67,6 +67,16 @@ describe('getSearchProvider', () => {
 })
 
 describe('getBingThumbnailURLToFillDimensions', () => {
+  var windowURLClass
+
+  beforeAll(() => {
+    windowURLClass = window.URL
+  })
+
+  afterEach(() => {
+    window.URL = windowURLClass
+  })
+
   it('returns an unmodified URL when desiredDimensions is not defined', () => {
     const mockURL = 'https://www.bing.com/th?id=abcdefg&pid=News'
     const desiredDimensions = undefined
@@ -87,6 +97,18 @@ describe('getBingThumbnailURLToFillDimensions', () => {
     expect(
       getBingThumbnailURLToFillDimensions(mockURL, desiredDimensions)
     ).toEqual(mockURL)
+  })
+
+  it('returns an the expected URL even when url.searchParams is not defined', () => {
+    const mockURL = 'https://www.bing.com/th?id=abcdefg&pid=News'
+    const desiredDimensions = { width: 300, height: 500 }
+    jest.spyOn(window, 'URL').mockImplementation(() => undefined)
+    const {
+      getBingThumbnailURLToFillDimensions,
+    } = require('js/utils/search-utils')
+    expect(
+      getBingThumbnailURLToFillDimensions(mockURL, desiredDimensions)
+    ).toEqual('https://www.bing.com/th?id=abcdefg&pid=News&w=300&h=500&c=7')
   })
 
   it('returns the expected URL when the desired space is 3x the image and a different ratio', () => {
@@ -206,44 +228,49 @@ describe('isSearchExtensionInstalled', () => {
     window.searchforacause.extension.isInstalled = false
   })
 
-  it('returns false if window.searchforacause is not defined and the "q" URL param has a value', () => {
+  it('returns false if window.searchforacause is not defined and the "q" URL param has a value', async () => {
+    expect.assertions(1)
     delete window.searchforacause
     getUrlParameters.mockReturnValue({
       q: 'coffee',
     })
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(false)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(false)
   })
 
-  it('returns false if window.searchforacause.extension.isInstalled is false', () => {
+  it('returns false if window.searchforacause.extension.isInstalled is false', async () => {
+    expect.assertions(1)
     window.searchforacause.extension.isInstalled = false
     getUrlParameters.mockReturnValue({
       q: 'coffee',
     })
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(false)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(false)
   })
 
-  it('returns true if window.searchforacause.extension.isInstalled is true', () => {
+  it('returns true if window.searchforacause.extension.isInstalled is true', async () => {
+    expect.assertions(1)
     window.searchforacause.extension.isInstalled = true
     getUrlParameters.mockReturnValue({
       q: 'coffee',
     })
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(true)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(true)
   })
 
-  it('returns false if the search "src" URL param is null and a "q" URL param has a value', () => {
+  it('returns false if the search "src" URL param is null and a "q" URL param has a value', async () => {
+    expect.assertions(1)
     getUrlParameters.mockReturnValue({
       q: 'coffee',
       src: null,
     })
     detectSupportedBrowser.mockReturnValue('chrome')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(false)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(false)
   })
 
-  it('returns true when the "q" URL param does not have value, even if the "src" URL param is not defined', () => {
+  it('returns true when the "q" URL param does not have value, even if the "src" URL param is not defined', async () => {
+    expect.assertions(1)
     window.searchforacause.extension.isInstalled = false
     getUrlParameters.mockReturnValue({
       q: null,
@@ -251,10 +278,11 @@ describe('isSearchExtensionInstalled', () => {
     })
     detectSupportedBrowser.mockReturnValue('chrome')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(true)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(true)
   })
 
-  it('returns true if the search "src" URL param is Chrome and the browser is Chrome, even when window.searchforacause.extension.isInstalled is false', () => {
+  it('returns true if the search "src" URL param is Chrome and the browser is Chrome, even when window.searchforacause.extension.isInstalled is false', async () => {
+    expect.assertions(1)
     window.searchforacause.extension.isInstalled = false
     getUrlParameters.mockReturnValue({
       q: 'coffee',
@@ -262,10 +290,11 @@ describe('isSearchExtensionInstalled', () => {
     })
     detectSupportedBrowser.mockReturnValue('chrome')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(true)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(true)
   })
 
-  it('returns true if the search "src" URL param is Firefox and the browser is Firefox, even when window.searchforacause.extension.isInstalled is false', () => {
+  it('returns true if the search "src" URL param is Firefox and the browser is Firefox, even when window.searchforacause.extension.isInstalled is false', async () => {
+    expect.assertions(1)
     window.searchforacause.extension.isInstalled = false
     getUrlParameters.mockReturnValue({
       q: 'coffee',
@@ -273,48 +302,52 @@ describe('isSearchExtensionInstalled', () => {
     })
     detectSupportedBrowser.mockReturnValue('firefox')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(true)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(true)
   })
 
-  it('returns false if the search "src" URL param is Firefox but the browser is Chrome', () => {
+  it('returns false if the search "src" URL param is Firefox but the browser is Chrome', async () => {
+    expect.assertions(1)
     getUrlParameters.mockReturnValue({
       q: 'coffee',
       src: 'ff',
     })
     detectSupportedBrowser.mockReturnValue('chrome')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(false)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(false)
   })
 
-  it('returns false if the search "src" URL param is "self" but the browser is Chrome', () => {
+  it('returns false if the search "src" URL param is "self" but the browser is Chrome', async () => {
+    expect.assertions(1)
     getUrlParameters.mockReturnValue({
       q: 'coffee',
       src: 'self',
     })
     detectSupportedBrowser.mockReturnValue('chrome')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    expect(isSearchExtensionInstalled()).toBe(false)
+    return expect(isSearchExtensionInstalled()).resolves.toBe(false)
   })
 
-  it('sets window.searchforacause.extension.isInstalled to true when the search source browser extension matches the browser', () => {
+  it('sets window.searchforacause.extension.isInstalled to true when the search source browser extension matches the browser', async () => {
+    expect.assertions(1)
     getUrlParameters.mockReturnValue({
       q: 'coffee',
       src: 'ff',
     })
     detectSupportedBrowser.mockReturnValue('firefox')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    isSearchExtensionInstalled()
+    await isSearchExtensionInstalled()
     expect(window.searchforacause.extension.isInstalled).toBe(true)
   })
 
-  it('sets window.searchforacause.extension.isInstalled to true when the "q" URL parameter is null', () => {
+  it('sets window.searchforacause.extension.isInstalled to true when the "q" URL parameter is null', async () => {
+    expect.assertions(1)
     getUrlParameters.mockReturnValue({
       q: null,
       src: null,
     })
     detectSupportedBrowser.mockReturnValue('firefox')
     const { isSearchExtensionInstalled } = require('js/utils/search-utils')
-    isSearchExtensionInstalled()
+    await isSearchExtensionInstalled()
     expect(window.searchforacause.extension.isInstalled).toBe(true)
   })
 })

@@ -45,7 +45,7 @@ class CampaignBase extends React.Component {
                   marginTop: 4,
                 }}
               >
-                Thank You for Supporting the AMF!
+                Thank You for Taking Climate Action!
               </Typography>
               <div
                 style={{
@@ -56,15 +56,16 @@ class CampaignBase extends React.Component {
                 <Typography variant={'body2'} gutterBottom>
                   With your help, the{' '}
                   <a
-                    href="https://www.againstmalaria.com"
+                    href="https://www.rainforest-alliance.org"
                     target="_blank"
                     rel="noopener noreferrer"
                     style={anchorStyle}
                   >
-                    Against Malaria Foundation
+                    Rainforest Alliance
                   </a>{' '}
-                  will continue their work protecting people from malaria
-                  through the purchase and distribution of nets.{' '}
+                  will continue their work protecting Earth’s forests and
+                  climate through improving supply chains, advocating for policy
+                  change, and spreading sustainable agriculture practices.{' '}
                 </Typography>
                 <Typography>
                   <span style={{ fontWeight: 'bold' }}>
@@ -104,7 +105,7 @@ class CampaignBase extends React.Component {
             marginTop: 4,
           }}
         >
-          July Spotlight: Against Malaria Foundation
+          September Spotlight: Rainforest Alliance
         </Typography>
         <div
           style={{
@@ -113,16 +114,16 @@ class CampaignBase extends React.Component {
           }}
         >
           <Typography variant={'body2'} gutterBottom>
-            This month, Tabbers selected{' '}
+            This month, Tabbers selected the{' '}
             <a
-              href="https://www.againstmalaria.com"
+              href="https://www.rainforest-alliance.org"
               target="_blank"
               rel="noopener noreferrer"
               style={anchorStyle}
             >
-              Against Malaria Foundation
+              Rainforest Alliance
             </a>{' '}
-            for our July{' '}
+            for our{' '}
             <a
               href="https://www.facebook.com/notes/tab-for-a-cause/introducing-monthly-charity-spotlight/2071986076177802/"
               target="_blank"
@@ -131,13 +132,26 @@ class CampaignBase extends React.Component {
             >
               Charity Spotlight
             </a>
-            . The Against Malaria foundation protects people from malaria by
-            funding long-lasting insecticidal nets (LLINs), and working with
-            distribution partners to ensure they are used. Each net costs
-            roughly $2, lasts for 3-4 years and protects on average 2 people.
+            , a group of companies, farmers, foresters, and consumers committed
+            to creating a world where people and nature thrive in harmony.
           </Typography>
           <Typography variant={'body2'} gutterBottom>
-            Join us in supporting the Against Malaria Foundation!
+            Want to do more against the climate crisis? On Sept 20 and 27,
+            people are walking out of their schools and workplaces to join a
+            youth-led{' '}
+            <a
+              href="https://globalclimatestrike.net"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={anchorStyle}
+            >
+              #ClimateStrike
+            </a>{' '}
+            demanding that leaders respond to this emergency.
+          </Typography>
+          <Typography variant={'body2'} gutterBottom>
+            Join us in supporting the Rainforest Alliance and action against
+            climate change!
           </Typography>
         </div>
       </HeartDonationCampaign>

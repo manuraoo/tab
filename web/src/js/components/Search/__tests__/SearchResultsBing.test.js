@@ -3,6 +3,7 @@
 import React from 'react'
 import { mount, shallow } from 'enzyme'
 import { range } from 'lodash/util'
+import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
 import Link from 'js/components/General/Link'
 import { showBingPagination } from 'js/utils/search-utils'
@@ -10,6 +11,7 @@ import SearchResultItem from 'js/components/Search/SearchResultItem'
 import SearchResultErrorMessage from 'js/components/Search/SearchResultErrorMessage'
 import { mockFetchResponse } from 'js/utils/test-utils'
 import ErrorBoundary from 'js/components/General/ErrorBoundary'
+import { SEARCH_INTRO_QUERY_ENGLISH } from 'js/constants'
 
 jest.mock('js/components/Search/SearchResultItem')
 jest.mock('js/components/General/Link')
@@ -147,7 +149,7 @@ describe('SearchResultsBing: tests for non-results display', () => {
     mockProps.isQueryInProgress = true // waiting for a response
     mockProps.queryReturned = false
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
-    expect(wrapper.get(0).props.style.minHeight).toBe(1000)
+    expect(wrapper.get(0).props.style.minHeight).toBe(4000)
   })
 
   it('removes the a min-height from the results container when the search is successful', () => {
@@ -180,7 +182,7 @@ describe('SearchResultsBing: tests for non-results display', () => {
     mockProps.isQueryInProgress = false
     mockProps.queryReturned = false
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
-    expect(wrapper.get(0).props.style.minHeight).toBe(1000)
+    expect(wrapper.get(0).props.style.minHeight).toBe(4000)
   })
 
   it('removes the a min-height from the results container when the query is empty', () => {
@@ -608,6 +610,117 @@ describe('SearchResultsBing: tests for displaying search results', () => {
   })
 })
 
+describe('SearchResultsBing: "first search card" result', () => {
+  it('does not render "first search card" when the query is not the "first search query" value', () => {
+    const SearchResultsBing = require('js/components/Search/SearchResultsBing')
+      .default
+    const mockProps = getMockProps()
+    mockProps.query = 'foo'
+    const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
+    expect(wrapper.find('[data-test-id="first-search-card"]').exists()).toBe(
+      false
+    )
+  })
+
+  it('renders the "first search card" when the query is the "first search query" value', () => {
+    const SearchResultsBing = require('js/components/Search/SearchResultsBing')
+      .default
+    const mockProps = getMockProps()
+    mockProps.query = SEARCH_INTRO_QUERY_ENGLISH
+    const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
+    const elem = wrapper.find('[data-test-id="first-search-card"]')
+    expect(elem.exists()).toBe(true)
+    expect(
+      elem
+        .find(Typography)
+        .first()
+        .render()
+        .text()
+    ).toEqual('Over 3.5 billion')
+    expect(
+      elem
+        .find(Typography)
+        .at(1)
+        .render()
+        .text()
+    ).toEqual(
+      'With Search for a Cause, those searches could give 500,000 people access to clean water or protect 430 square miles of rainforest each day!'
+    )
+  })
+
+  it('renders the "first search card" at the top of the search results', () => {
+    const SearchResultsBing = require('js/components/Search/SearchResultsBing')
+      .default
+    const mockProps = getMockProps()
+    mockProps.query = SEARCH_INTRO_QUERY_ENGLISH
+    const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
+    expect(
+      wrapper
+        .find('[data-test-id="search-results"]')
+        .find(Paper)
+        .first()
+        .prop('data-test-id')
+    ).toEqual('first-search-card')
+  })
+
+  it('does not render "first search card" when the query is in progress', () => {
+    const SearchResultsBing = require('js/components/Search/SearchResultsBing')
+      .default
+    const mockProps = getMockProps()
+    mockProps.query = SEARCH_INTRO_QUERY_ENGLISH
+    mockProps.data = Object.assign({}, mockProps.data, {
+      results: {
+        pole: [],
+        mainline: [],
+        sidebar: [],
+      },
+    })
+    mockProps.isError = false
+    mockProps.isEmptyQuery = false
+    mockProps.isQueryInProgress = true // waiting for a response
+    mockProps.queryReturned = false
+    mockProps.isEmptyQuery = false
+    const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
+    expect(wrapper.find('[data-test-id="first-search-card"]').exists()).toBe(
+      false
+    )
+  })
+
+  it('does not render "first search card" when the search results request errors', () => {
+    const SearchResultsBing = require('js/components/Search/SearchResultsBing')
+      .default
+    const mockProps = getMockProps()
+    mockProps.query = SEARCH_INTRO_QUERY_ENGLISH
+    mockProps.isError = true
+    mockProps.isEmptyQuery = false
+    mockProps.isQueryInProgress = false
+    mockProps.queryReturned = true
+    mockProps.isEmptyQuery = false
+    const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
+    expect(wrapper.find('[data-test-id="first-search-card"]').exists()).toBe(
+      false
+    )
+  })
+
+  it('does not render "first search card" when there are no search results to display', () => {
+    const SearchResultsBing = require('js/components/Search/SearchResultsBing')
+      .default
+    const mockProps = getMockProps()
+    mockProps.query = SEARCH_INTRO_QUERY_ENGLISH
+    mockProps.data = Object.assign({}, mockProps.data, {
+      results: {
+        pole: [],
+        mainline: [],
+        sidebar: [],
+      },
+    })
+    const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
+    expect(wrapper.find('[data-test-id="first-search-card"]').exists()).toBe(
+      false
+    )
+  })
+})
+
 describe('SearchResultsBing: tests for pagination', () => {
   beforeEach(() => {
     showBingPagination.mockReturnValue(true)
@@ -621,10 +734,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     mockProps.query = 'ice cream'
     mockProps.page = 1
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-        .display
-    ).toEqual('flex')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      true
+    )
   })
 
   it('does not show the pagination container when it is not enabled', () => {
@@ -635,10 +747,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     mockProps.query = 'ice cream'
     mockProps.page = 1
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-        .display
-    ).toEqual('none')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      false
+    )
   })
 
   it('hides the pagination container when there is an empty query', () => {
@@ -650,9 +761,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
 
     // The pagination container should not be hidden.
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-    ).toHaveProperty('display', 'flex')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      true
+    )
 
     wrapper.setProps({
       query: '',
@@ -660,9 +771,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     })
 
     // The pagination container should be hidden now.
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-    ).toHaveProperty('display', 'none')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      false
+    )
   })
 
   it('hides the pagination container when the search query is in progress', () => {
@@ -683,9 +794,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     mockProps.queryReturned = false
     mockProps.isEmptyQuery = false
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-    ).toHaveProperty('display', 'none')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      false
+    )
   })
 
   it('hides the pagination container when the search query is in progress and results are still available from the previous page', () => {
@@ -721,9 +832,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     mockProps.queryReturned = false
     mockProps.isEmptyQuery = false
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-    ).toHaveProperty('display', 'none')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      false
+    )
   })
 
   it('hides the pagination container when there are no search results', () => {
@@ -744,9 +855,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     mockProps.queryReturned = true
     mockProps.isEmptyQuery = false
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-    ).toHaveProperty('display', 'none')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      false
+    )
   })
 
   it('hides the pagination container when there is an error', () => {
@@ -758,9 +869,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
 
     // The pagination container should not be hidden.
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-    ).toHaveProperty('display', 'flex')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      true
+    )
 
     wrapper.setProps({
       query: '',
@@ -768,9 +879,9 @@ describe('SearchResultsBing: tests for pagination', () => {
     })
 
     // The pagination container should be hidden now.
-    expect(
-      wrapper.find('[data-test-id="pagination-container"]').prop('style')
-    ).toHaveProperty('display', 'none')
+    expect(wrapper.find('[data-test-id="pagination-container"]').exists()).toBe(
+      false
+    )
   })
 
   it('does not render the "previous page" pagination button when on the first page', () => {
@@ -804,6 +915,26 @@ describe('SearchResultsBing: tests for pagination', () => {
     expect(wrapper.find('[data-test-id="pagination-previous"]').exists()).toBe(
       true
     )
+  })
+
+  it('renders the "previous page" pagination button after changing from the first page', () => {
+    const SearchResultsBing = require('js/components/Search/SearchResultsBing')
+      .default
+    const mockProps = getMockProps()
+    mockProps.page = 1
+    const wrapper = shallow(<SearchResultsBing {...mockProps} />).dive()
+    expect(wrapper.find('[data-test-id="pagination-previous"]').exists()).toBe(
+      false
+    )
+    wrapper.setProps({
+      page: 4,
+    })
+    expect(wrapper.find('[data-test-id="pagination-previous"]').exists()).toBe(
+      true
+    )
+    expect(
+      wrapper.find('[data-test-id="pagination-previous"]').prop('disabled')
+    ).not.toBe(true)
   })
 
   it('does render the 9999th pagination button when on the final page (page 9999)', () => {
