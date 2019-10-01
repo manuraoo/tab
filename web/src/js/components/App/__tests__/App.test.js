@@ -2,11 +2,13 @@
 
 import React from 'react'
 import { shallow } from 'enzyme'
+import { Route } from 'react-router-dom'
 import { MuiThemeProvider } from '@material-ui/core/styles'
 import V0MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
 import { Helmet } from 'react-helmet'
 import ErrorBoundary from 'js/components/General/ErrorBoundary'
 import QuantcastChoiceCMP from 'js/components/General/QuantcastChoiceCMP'
+import DashboardView from 'js/components/Dashboard/DashboardView'
 
 jest.mock('js/components/Dashboard/DashboardView')
 jest.mock('js/utils/client-location')
@@ -94,6 +96,103 @@ describe('App.js: general', () => {
       '%s - Tab for a Cause'
     )
     expect(wrapper.find(Helmet).prop('defaultTitle')).toEqual('Tab for a Cause')
+  })
+})
+
+describe('App.js: routing', () => {
+  it('contains the base newtab route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/')
+    expect(route.exists()).toBe(true)
+    expect(route.prop('component')).toBe(DashboardView)
+  })
+
+  it('contains the settings route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/settings/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
+  })
+
+  it('contains the account route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/account/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
+  })
+
+  it('contains the profile route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/profile/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
+  })
+
+  it('contains the "first tab" route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/first-tab/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
+  })
+
+  it('contains the "intro" route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/intro/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
+  })
+
+  it('contains the post-uninstall route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/uninstalled/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
+  })
+
+  it('contains the auth route', async () => {
+    const App = require('js/components/App/App').default
+    const mockProps = getMockProps()
+    const wrapper = shallow(<App {...mockProps} />)
+    const route = wrapper
+      .find(Route)
+      .filterWhere(n => n.prop('path') === '/newtab/auth/')
+    expect(route.exists()).toBe(true)
+
+    // TODO: test the component type when Enzyme fully supports React.lazy
   })
 })
 
