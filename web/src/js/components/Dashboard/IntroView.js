@@ -19,4 +19,7 @@ class IntroView extends React.Component {
   }
 }
 
+IntroView.propTypes = {}
+IntroView.defaultProps = {}
+
 export default IntroView
