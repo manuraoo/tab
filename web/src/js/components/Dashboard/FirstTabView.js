@@ -37,9 +37,6 @@ class FirstTabView extends React.Component {
     this.setState({
       renderChildren: true,
     })
-
-    // TODO: add a timeout to redirect to sign-in in case anything
-    // goes wrong with experiment assignment?
   }
 
   onExperimentAssignmentComplete(success) {
