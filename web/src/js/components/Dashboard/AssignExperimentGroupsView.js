@@ -77,6 +77,7 @@ AssignExperimentGroupsView.defaultProps = {
 }
 
 export default withUser({
+  createUserIfPossible: true,
   renderIfNoUser: true,
   redirectToAuthIfIncomplete: false,
 })(AssignExperimentGroupsView)
