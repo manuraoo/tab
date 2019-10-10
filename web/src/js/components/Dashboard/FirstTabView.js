@@ -6,9 +6,6 @@ import {
 } from 'js/utils/local-user-data-mgr'
 import AssignExperimentGroupsView from 'js/components/Dashboard/AssignExperimentGroupsView'
 
-// TODO: first, set up and deploy the general structure to do
-// experiments. Then, set up the experiment.
-
 // The view the extensions open immediately after they're
 // added to the browser.
 class FirstTabView extends React.Component {
@@ -31,8 +28,9 @@ class FirstTabView extends React.Component {
     // had cleared their local data.
     setBrowserExtensionInstallTime()
 
-    // Important: the extension install time must be set
-    // before we call the `withUser` HOC, which relies on knowing
+    // Important: the extension install time must be set before
+    // we attempt to create the user (e.g. via the `withUser` HOC or
+    // the QueryRendererWithUser component), which relies on knowing
     // the installation time.
     this.setState({
       renderChildren: true,
@@ -56,6 +54,10 @@ class FirstTabView extends React.Component {
     if (!renderChildren) {
       return null
     }
+
+    // TODO: fetch the user from the server-side to see if they're
+    // in the "impact" experiment. We should move to assigning
+    // experiment groups solely on the server-side.
     return (
       <div>
         <AssignExperimentGroupsView
