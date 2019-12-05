@@ -21,6 +21,7 @@ import QuantcastChoiceCMP from 'js/components/General/QuantcastChoiceCMP'
 import tabFavicon from 'js/assets/logos/favicon.ico'
 import { TAB_APP } from 'js/constants'
 import { parseUrlSearchString, validateAppName } from 'js/utils/utils'
+import { requestEUAdPersonalization } from 'js/utils/feature-flags'
 
 const AuthenticationView = lazy(() =>
   import('js/components/Authentication/AuthenticationView')
@@ -41,6 +42,9 @@ class App extends React.Component {
   constructor(props) {
     super(props)
     this.consentChangeCallback = null
+    this.state = {
+      requestEUAdPersonalization: requestEUAdPersonalization(),
+    }
   }
 
   async componentDidMount() {
@@ -72,6 +76,7 @@ class App extends React.Component {
     // Get the app for branding purposes (e.g. we use the auth flow for
     // multiple apps).
     const { location } = this.props
+    const { requestEUAdPersonalization } = this.state
     const urlParams = parseUrlSearchString(location.search)
     const app = validateAppName(urlParams.app)
 
@@ -128,9 +133,11 @@ class App extends React.Component {
                   <Redirect from="*" to="/newtab/" />
                 </Switch>
               </Suspense>
-              <ErrorBoundary ignoreErrors brand={TAB_APP}>
-                <QuantcastChoiceCMP />
-              </ErrorBoundary>
+              {requestEUAdPersonalization ? (
+                <ErrorBoundary ignoreErrors brand={TAB_APP}>
+                  <QuantcastChoiceCMP />
+                </ErrorBoundary>
+              ) : null}
             </div>
           </ErrorBoundary>
         </V0MuiThemeProvider>

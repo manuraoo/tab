@@ -160,6 +160,7 @@ export const adblockerWhitelistingURL = absoluteUrl('/adblockers/')
 export const adblockerWhitelistingForSearchURL = absoluteUrl(
   '/adblockers/search/'
 )
+export const treePlantingCampaignHomepageURL = absoluteUrl('/plant-trees/')
 
 // External links
 

@@ -74,6 +74,7 @@ import BackgroundImageModel from '../database/backgroundImages/BackgroundImageMo
 import getRecruits, {
   getTotalRecruitsCount,
   getRecruitsActiveForAtLeastOneDay,
+  getRecruitsWithAtLeastOneTab,
 } from '../database/referrals/getRecruits'
 
 import {
@@ -82,6 +83,7 @@ import {
   getDollarsPerDayRate,
   isGlobalCampaignLive,
 } from '../database/globals/globals'
+import getCampaign from '../database/globals/getCampaign'
 
 class App {
   constructor(id) {
@@ -672,6 +674,25 @@ const charityType = new GraphQLObjectType({
   interfaces: [nodeInterface],
 })
 
+const campaignType = new GraphQLObjectType({
+  name: 'Campaign',
+  description: 'Campaigns (or "charity spotlights") shown to users.',
+  fields: () => ({
+    campaignId: {
+      type: GraphQLString,
+      description: 'the ID of the campaign',
+    },
+    isLive: {
+      type: new GraphQLNonNull(GraphQLBoolean),
+      description: 'whether or not the campaign should currently show to users',
+    },
+    numNewUsers: {
+      type: GraphQLInt,
+      description: 'the number of new users who joined during this campaign',
+    },
+  }),
+})
+
 const appType = new GraphQLObjectType({
   name: 'App',
   description: 'Global app fields',
@@ -738,9 +759,15 @@ const appType = new GraphQLObjectType({
           args
         ),
     },
+    // Deprecated. Use the campaign object.
     isGlobalCampaignLive: {
       type: GraphQLBoolean,
       resolve: () => isGlobalCampaignLive(),
+    },
+    campaign: {
+      type: campaignType,
+      description: 'Campaigns (or "charity spotlights") shown to users.',
+      resolve: () => getCampaign(),
     },
   }),
   interfaces: [nodeInterface],
@@ -798,6 +825,12 @@ const { connectionType: userRecruitsConnection } = connectionDefinitions({
         'The count of users recruited who remained active for one day or more',
       resolve: connection =>
         getRecruitsActiveForAtLeastOneDay(connection.edges),
+    },
+    recruitsWithAtLeastOneTab: {
+      type: GraphQLInt,
+      description:
+        'The count of users recruited who have opened one tab or more',
+      resolve: connection => getRecruitsWithAtLeastOneTab(connection.edges),
     },
   },
 })

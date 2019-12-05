@@ -42,16 +42,22 @@ import {
 } from 'js/ads/adSettings'
 import {
   setUserDismissedAdExplanation,
+  hasUserDismissedCampaignRecently,
   hasUserDismissedNotificationRecently,
   hasUserClickedNewTabSearchIntroNotif,
   setUserClickedNewTabSearchIntroNotif,
   hasUserClickedNewTabSearchIntroNotifV2,
   setUserClickedNewTabSearchIntroNotifV2,
+  removeCampaignDismissTime,
 } from 'js/utils/local-user-data-mgr'
-import { showGlobalNotification } from 'js/utils/feature-flags'
+import {
+  showGlobalNotification,
+  showSearchIntroductionMessage,
+} from 'js/utils/feature-flags'
 import { getUserExperimentGroup } from 'js/utils/experiments'
 import { detectSupportedBrowser } from 'js/utils/detectBrowser'
 import LogUserExperimentActionsMutation from 'js/mutations/LogUserExperimentActionsMutation'
+import CampaignBase from 'js/components/Campaign/CampaignBaseView'
 
 jest.mock('js/analytics/logEvent')
 jest.mock('js/utils/localstorage-mgr')
@@ -104,7 +110,9 @@ const mockProps = {
     experimentActions: {},
   },
   app: {
-    isGlobalCampaignLive: false,
+    campaign: {
+      isLive: false,
+    },
   },
 }
 
@@ -656,6 +664,7 @@ describe('Dashboard component: search intro message', () => {
   beforeEach(() => {
     getUserExperimentGroup.mockReturnValue('none')
     hasUserClickedNewTabSearchIntroNotif.mockReturnValue(false)
+    showSearchIntroductionMessage.mockReturnValue(true)
   })
 
   // Showing the intro globally now that the experiment is finished.
@@ -666,6 +675,19 @@ describe('Dashboard component: search intro message', () => {
     const wrapper = shallow(<DashboardComponent {...mockProps} />)
     expect(wrapper.find('[data-test-id="search-intro-notif"]').exists()).toBe(
       true
+    )
+  })
+
+  it('does not show the search intro notification when the "search intro" feature flag is disabled', () => {
+    const DashboardComponent = require('js/components/Dashboard/DashboardComponent')
+      .default
+
+    // Disable the feature.
+    showSearchIntroductionMessage.mockReturnValue(false)
+
+    const wrapper = shallow(<DashboardComponent {...mockProps} />)
+    expect(wrapper.find('[data-test-id="search-intro-notif"]').exists()).toBe(
+      false
     )
   })
 
@@ -905,6 +927,7 @@ describe('Dashboard component: sparkly search intro button', () => {
     getUserExperimentGroup.mockReturnValue('none')
     hasUserClickedNewTabSearchIntroNotif.mockReturnValue(false)
     hasUserClickedNewTabSearchIntroNotifV2.mockReturnValue(false)
+    showSearchIntroductionMessage.mockReturnValue(true)
   })
 
   it('shows the sparkly search intro button when the user has not already clicked it, has opened more than 150 tabs, and has not already searched', () => {
@@ -1016,6 +1039,23 @@ describe('Dashboard component: sparkly search intro button', () => {
     modifiedProps.user.tabs = 160
     const wrapper = shallow(<DashboardComponent {...modifiedProps} />)
     expect(wrapper.find(UserMenu).prop('browser')).toEqual('firefox')
+  })
+
+  it('does not show the sparkly search intro button when the "search intro" feature flag is disabled', () => {
+    const DashboardComponent = require('js/components/Dashboard/DashboardComponent')
+      .default
+
+    // Disable the feature.
+    showSearchIntroductionMessage.mockReturnValue(false)
+
+    const modifiedProps = cloneDeep(mockProps)
+    modifiedProps.user.tabs = 160
+    modifiedProps.user.searches = 0
+    hasUserClickedNewTabSearchIntroNotifV2.mockReturnValue(false)
+    const wrapper = shallow(<DashboardComponent {...modifiedProps} />)
+    expect(wrapper.find(UserMenu).prop('showSparklySearchIntroButton')).toBe(
+      false
+    )
   })
 })
 
@@ -1250,5 +1290,47 @@ describe('Dashboard component: referral notification experiment', () => {
         .indexOf('Get a friend to join you on Tab for a Cause, and together') >
         -1
     ).toBe(true)
+  })
+})
+
+describe('Dashboard component: campaign reopen click', () => {
+  beforeEach(() => {
+    hasUserDismissedCampaignRecently.mockReturnValueOnce(true)
+  })
+
+  it('passes showCampaignReopenButton === true to the UserMenu when hasUserDismissedCampaignRecently is true', () => {
+    const DashboardComponent = require('js/components/Dashboard/DashboardComponent')
+      .default
+    const wrapper = shallow(<DashboardComponent {...mockProps} />)
+    hasUserDismissedCampaignRecently.mockReturnValueOnce(true)
+    expect(wrapper.find(UserMenu).prop('showCampaignReopenButton')).toBe(true)
+    wrapper.setState({ hasUserDismissedCampaignRecently: false })
+    expect(wrapper.find(UserMenu).prop('showCampaignReopenButton')).toBe(false)
+  })
+
+  it('reopens the campaign when the UserMenu calls the onClickCampaignReopen function', () => {
+    const DashboardComponent = require('js/components/Dashboard/DashboardComponent')
+      .default
+    const wrapper = shallow(<DashboardComponent {...mockProps} />)
+
+    // It would be better to directly test that the campaign is rendered.
+    // We're not doing that because of lack of Enzyme support for lazy/Suspense
+    // (see notes above).
+    expect(wrapper.state('hasUserDismissedCampaignRecently')).toBe(true)
+    const callback = wrapper.find(UserMenu).prop('onClickCampaignReopen')
+    callback()
+    expect(wrapper.state('hasUserDismissedCampaignRecently')).toBe(false)
+  })
+
+  it('deletes local "campaign dismissed" state when the UserMenu calls the onClickCampaignReopen function', () => {
+    const DashboardComponent = require('js/components/Dashboard/DashboardComponent')
+      .default
+    const wrapper = shallow(<DashboardComponent {...mockProps} />)
+
+    expect(removeCampaignDismissTime).not.toHaveBeenCalled()
+    expect(wrapper.state('hasUserDismissedCampaignRecently')).toBe(true)
+    const callback = wrapper.find(UserMenu).prop('onClickCampaignReopen')
+    callback()
+    expect(removeCampaignDismissTime).toHaveBeenCalledTimes(1)
   })
 })
