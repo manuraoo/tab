@@ -77,11 +77,6 @@
     "s3:install": "cd ./s3 && yarn install",
     "s3:start": "cd ./s3 && yarn run start | node ../scripts/log-prefix.js [s3] yellow"
   },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
     "**/*.{js,jsx,ts,tsx,json,css,scss,md}": [
       "yarn run parent:format:fix",
